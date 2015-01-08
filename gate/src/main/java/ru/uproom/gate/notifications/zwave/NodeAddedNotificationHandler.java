@@ -20,8 +20,6 @@ public class NodeAddedNotificationHandler implements NotificationHandler {
     @Override
     public boolean execute(Notification notification, GateDevicesSet home) {
 
-        // todo : send command SendDeviceList include new device
-
         home.addGateDevice((int) notification.getNodeId());
 
         LOG.debug("z-wave notification : {};" +

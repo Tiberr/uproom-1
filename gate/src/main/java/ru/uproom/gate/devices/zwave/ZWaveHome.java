@@ -147,7 +147,9 @@ public class ZWaveHome implements GateDevicesSet {
         ZWaveNode node = new ZWaveNode(this, index);
         nodes.put(index, node);
         if (!isReady()) return;
-        transport.sendCommand(new SetDeviceParameterCommand(node.getDeviceDTO()));
+        List<DeviceDTO> device = new ArrayList<>();
+        device.add(node.getDeviceDTO());
+        transport.sendCommand(new SendDeviceListCommand(device));
     }
 
     @Override

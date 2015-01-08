@@ -25,8 +25,4 @@ public class SetDeviceParameterCommandHandler implements CommandHandler {
         return true;
     }
 
-    @Override
-    public void stop() {
-
-    }
 }

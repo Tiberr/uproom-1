@@ -12,6 +12,4 @@ public interface CommandHandler {
 
     public boolean execute(Command command, GateDevicesSet home);
 
-    public void stop();
-
 }

@@ -36,7 +36,8 @@ public class ZWaveValue {
     public ZWaveValue(ValueId valueId) {
         this.valueId = valueId;
         this.id = ZWaveValueIndexFactory.createIndex(valueId);
-        this.valueName = ZWaveDeviceParametersNames.byZWaveCode(this.id);
+        String zName = Manager.get().getValueLabel(valueId);
+        this.valueName = ZWaveDeviceParametersNames.byZWaveUID(this.id, zName);
         this.readOnly = Manager.get().isValueReadOnly(valueId);
     }
 

@@ -32,8 +32,4 @@ public class SendDeviceListCommandHandler implements CommandHandler {
         return true;
     }
 
-    @Override
-    public void stop() {
-
-    }
 }

@@ -23,14 +23,16 @@ public class ValueRefreshedNotificationHandler implements NotificationHandler {
     public boolean execute(Notification notification, GateDevicesSet home) {
 
         int paramIndex = ZWaveValueIndexFactory.createIndex(notification.getValueId());
-        ZWaveDeviceParametersNames paramName = ZWaveDeviceParametersNames.byZWaveCode(paramIndex);
+        String paramZName = Manager.get().getValueLabel(notification.getValueId());
+        ZWaveDeviceParametersNames paramName =
+                ZWaveDeviceParametersNames.byZWaveUID(paramIndex, paramZName);
 
         home.addGateDeviceParameter(notification.getNodeId(), paramName, notification.getValueId());
 
         LOG.debug("z-wave notification : {}; node : {}; label : {}", new Object[]{
                 notification.getType(),
                 notification.getNodeId(),
-                Manager.get().getValueLabel(notification.getValueId()),
+                paramZName
         });
 
         return true;
