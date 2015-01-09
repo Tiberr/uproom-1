@@ -27,7 +27,7 @@ public enum ZWaveDeviceParametersNames {
     Exporting(3277088, "Exporting", true),
     Reset(3277089, "Reset", false),
     TruePeriod(7340289, "True Period", true),
-    Color(7340289, "Color", false),
+    Color(7340289, "RGB Color", false),
     SendOutBasicCommand(7340290, "Send Out Basic Command", true),
     MeterReportPeriod(7340291, "Meter Report Period", false),
     LibraryVersion(8782080, "Library Version", true),

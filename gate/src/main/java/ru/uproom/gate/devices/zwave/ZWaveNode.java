@@ -1,5 +1,7 @@
 package ru.uproom.gate.devices.zwave;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.zwave4j.Manager;
 import ru.uproom.gate.devices.GateDevicesSet;
 import ru.uproom.gate.transport.dto.DeviceDTO;
@@ -23,6 +25,7 @@ public class ZWaveNode {
     //=============================================================================================================
     //======    fields
 
+    private static final Logger LOG = LoggerFactory.getLogger(ZWaveNode.class);
 
     // device type
     private GateDevicesSet home = null;
@@ -209,15 +212,27 @@ public class ZWaveNode {
 
 
     //------------------------------------------------------------------------
+    //  normalize level
+
+    private int normalizeLevel(int color) {
+        return color * 100 / 255;
+    }
+
+
+    //------------------------------------------------------------------------
     //  set node any values
 
-    public boolean setParams(DeviceDTO dto) {
+    public boolean applyParametersFromDTO(DeviceDTO dto) {
 
         // todo : this code must be parted to different classes
 
         // switch
         Object o = dto.getParameters().get(DeviceParametersNames.Switch);
         if (o != null) {
+            LOG.debug("apply node ({}) parameter (Switch) value ({})", new Object[]{
+                    zId,
+                    o.toString()
+            });
             ZWaveValue param = (ZWaveValue) params.get(ZWaveDeviceParametersNames.Switch);
             if (param != null) {
                 param.setValue(o.toString());
@@ -227,6 +242,10 @@ public class ZWaveNode {
         // level
         o = dto.getParameters().get(DeviceParametersNames.Level);
         if (o != null) {
+            LOG.debug("apply node ({}) parameter (Level) value ({})", new Object[]{
+                    zId,
+                    o.toString()
+            });
             ZWaveValue param = (ZWaveValue) params.get(ZWaveDeviceParametersNames.Level);
             if (param != null) {
                 param.setValue(o.toString());
@@ -236,18 +255,24 @@ public class ZWaveNode {
         // color
         o = dto.getParameters().get(DeviceParametersNames.Color);
         if (o != null) {
+            LOG.debug("apply node ({}) parameter (Color) value ({})", new Object[]{
+                    zId,
+                    o.toString()
+            });
             ZWaveValue param = (ZWaveValue) params.get(ZWaveDeviceParametersNames.Color);
             if (param != null) {
-                param.setValue(o.toString());
+                Integer newColor = (Integer) o;
+                param.setValue(String.valueOf(normalizeLevel(newColor % 256)));
             } else {
                 Integer newColor = (Integer) o;
                 ZWaveValue levelRed = (ZWaveValue) params.get(ZWaveDeviceParametersNames.LevelRed);
                 ZWaveValue levelGreen = (ZWaveValue) params.get(ZWaveDeviceParametersNames.LevelGreen);
                 ZWaveValue levelBlue = (ZWaveValue) params.get(ZWaveDeviceParametersNames.LevelBlue);
                 if (levelRed != null && levelGreen != null && levelBlue != null) {
-                    levelBlue.setValue(String.valueOf(newColor % 256));
-                    levelGreen.setValue(String.valueOf(newColor / 256 % 256));
-                    levelRed.setValue(String.valueOf(newColor / 256 / 256 % 256));
+
+                    levelBlue.setValue(String.valueOf(normalizeLevel(newColor % 256)));
+                    levelGreen.setValue(String.valueOf(normalizeLevel(newColor / 256 % 256)));
+                    levelRed.setValue(String.valueOf(normalizeLevel(newColor / 256 / 256 % 256)));
                 }
             }
         }

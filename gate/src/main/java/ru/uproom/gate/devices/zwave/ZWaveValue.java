@@ -4,8 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zwave4j.Manager;
 import org.zwave4j.ValueId;
-import ru.uproom.gate.notifications.zwave.NotificationWatcherImpl;
-import ru.uproom.gate.transport.domain.DelayTimer;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,7 +16,7 @@ public class ZWaveValue {
     //=============================================================================================================
     //======    fields
 
-    private static final Logger LOG = LoggerFactory.getLogger(NotificationWatcherImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ZWaveValue.class);
 
     private int id;
     private ValueId valueId;
@@ -26,7 +24,6 @@ public class ZWaveValue {
     private boolean readOnly;
 
     private ZWaveValueSetLevel setLevel;
-    private Thread threadSetLevel;
 
 
     //=============================================================================================================
@@ -152,10 +149,12 @@ public class ZWaveValue {
     private boolean setLevelInit(String value) {
 
         // stop previous instance
-        if (setLevel != null) setLevel.setWork(false);
+        if (setLevel != null) {
+            setLevel.setWork(false);
+        }
         // create new instance
         setLevel = new ZWaveValueSetLevel(Integer.parseInt(value));
-        threadSetLevel = new Thread(setLevel);
+        Thread threadSetLevel = new Thread(setLevel);
         threadSetLevel.start();
 
         return true;
@@ -172,14 +171,25 @@ public class ZWaveValue {
 
         boolean result = false;
 
-        if (valueName == ZWaveDeviceParametersNames.Level) {
+        LOG.debug("set parameter ({}) to value ({}) ", new Object[]{
+                valueName,
+                value
+        });
+
+        if (
+                valueName == ZWaveDeviceParametersNames.Level ||
+                        valueName == ZWaveDeviceParametersNames.LevelRed ||
+                        valueName == ZWaveDeviceParametersNames.LevelGreen ||
+                        valueName == ZWaveDeviceParametersNames.LevelBlue ||
+                        valueName == ZWaveDeviceParametersNames.LevelWhite
+                ) {
+
             // range of level are number 0-99 and 255
             int iValue = Integer.parseInt(value);
             if (iValue <= 0) value = "0";
             else if (iValue >= 99) value = "99";
             // smoothing set for level
             result = setLevelInit(value);
-            LOG.debug(">>>> set level : " + this.toString() + " to value : " + value);
 
         } else
             result = Manager.get().setValueAsString(valueId, value);
@@ -194,8 +204,8 @@ public class ZWaveValue {
     public class ZWaveValueSetLevel implements Runnable {
 
         private boolean work = true;
-        private int setLevelJitter = 2;
-        private int setLevelJitterTime = 100; //ms
+        private int setLevelJitter = 5;
+        private int setLevelJitterTime = 200; //ms
         private int level;
 
         ZWaveValueSetLevel(int level) {
@@ -204,19 +214,35 @@ public class ZWaveValue {
 
         public void setWork(boolean work) {
             this.work = work;
+            synchronized (this) {
+                notify();
+            }
+        }
+
+
+        // ---- wait handler ----
+        private void waitForNotify(long period) {
+            try {
+                wait(period);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
         public void run() {
 
-            int value = Integer.parseInt(getValueAsString());
+            int value = getValueAsInt();
             int multiplier = 1;
             if (value > level) multiplier = -1;
 
             while (work && (level - value) * multiplier > 0) {
-                Manager.get().setValueAsString(valueId, String.format("%d", value));
-                value += (setLevelJitter * multiplier);
-                DelayTimer.sleep(setLevelJitterTime);
+                synchronized (this) {
+                    LOG.debug("set color : {}", value);
+                    Manager.get().setValueAsString(valueId, String.valueOf(value));
+                    value += (setLevelJitter * multiplier);
+                    waitForNotify(setLevelJitterTime);
+                }
             }
 
         }

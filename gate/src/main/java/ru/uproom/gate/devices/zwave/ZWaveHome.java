@@ -296,7 +296,7 @@ public class ZWaveHome implements GateDevicesSet {
     public void setDeviceDTO(DeviceDTO dto) {
         ZWaveNode node = nodes.get(dto.getZId());
         if (node == null) return;
-        node.setParams(dto);
+        node.applyParametersFromDTO(dto);
     }
 
 
