@@ -34,6 +34,9 @@ public class GateLocalOutputImpl implements GateLocalOutput {
     @Autowired
     private GateLocalTransport transport;
 
+    @Autowired
+    private GateSerialPort serialPort;
+
 
     //##############################################################################################################
     //######    constructors
@@ -47,6 +50,12 @@ public class GateLocalOutputImpl implements GateLocalOutput {
 
     //##############################################################################################################
     //######    getters / setters
+
+
+    @Override
+    public GateSerialPort getSerialPort() {
+        return serialPort;
+    }
 
 
     //##############################################################################################################

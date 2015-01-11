@@ -39,6 +39,8 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
 
     private GateLocalOutput parent;
 
+    private GateSerialPort serialPort;
+
 
     //##############################################################################################################
     //######    constructors
@@ -49,6 +51,7 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
         input = new ConsoleInput(this);
         threadInput = new Thread(input);
         threadInput.start();
+        serialPort = parent.getSerialPort();
     }
 
 
@@ -151,10 +154,17 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
                 break;
             case Exit:
                 parent.setCommandFromUnit(new ExitCommand());
+                serialPort.stop();
                 break;
             case SetDeviceParameter:
                 setDeviceParameter(cmdArray);
                 break;
+            // work with serial port
+            case Handshake:
+                // FUNC_ID_ZW_GET_VERSION = 0x01 0x03 0x00 0x15 0xE9
+                serialPort.sendCommand("\u0015\u0001\u0003\u0000\u0015" + (char) 0xE9);
+                break;
+
             default:
         }
     }

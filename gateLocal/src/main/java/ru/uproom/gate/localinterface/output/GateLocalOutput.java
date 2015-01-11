@@ -14,4 +14,6 @@ public interface GateLocalOutput {
 
     public void setCommandFromUnit(Command command);
 
+    public GateSerialPort getSerialPort();
+
 }
