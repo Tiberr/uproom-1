@@ -38,7 +38,7 @@ public class GateSerialPortImpl implements GateSerialPort {
 
 
     //##############################################################################################################
-    //######    constructors
+    //######    constructors / destructors
 
 
     @PostConstruct
