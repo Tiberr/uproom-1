@@ -5,6 +5,6 @@ package ru.uproom.gate.localinterface.domain;
  */
 public interface ByteQueueNotify {
 
-    public void hasData();
+    public void hasData(byte[] bytes);
 
 }

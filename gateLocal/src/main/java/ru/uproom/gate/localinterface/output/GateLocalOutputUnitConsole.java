@@ -162,7 +162,7 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
             // work with serial port
             case Handshake:
                 // FUNC_ID_ZW_GET_VERSION = 0x01 0x03 0x00 0x15 0xE9
-                serialPort.sendCommand("\u0015\u0001\u0003\u0000\u0015" + (char) 0xE9);
+                serialPort.sendRequest(new byte[]{0x15, 0x01, 0x03, 0x00, 0x15, (byte) 0xE9});
                 break;
 
             default:

@@ -1,10 +1,12 @@
 package ru.uproom.gate.localinterface.output;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.uproom.gate.localinterface.domain.ByteQueue;
-import ru.uproom.gate.localinterface.domain.ByteQueueNotify;
 
-import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by osipenko on 11.01.15.
@@ -16,24 +18,16 @@ public class GateSerialHandlerImpl implements GateSerialHandler {
     //##############################################################################################################
     //######    fields
 
+    private static final Logger LOG = LoggerFactory.getLogger(GateSerialHandlerImpl.class);
 
-    private final byte SOF = 0x01; // Start Of Frame
-    private final byte ACK = 0x06; // ACKnowledge
-    private final byte NAC = 0x15; // Negative ACk
-    private final byte CAN = 0x18; // CANcel
+    private final List<byte[]> messages = new ArrayList<>();
 
-    private final DataNotify watcher = new DataNotify();
-    private ByteQueue dataQueue;
+    @Autowired
+    private GateSerialPort serialPort;
 
 
     //##############################################################################################################
     //######    constructors / destructors
-
-
-    @PostConstruct
-    public void init() {
-        dataQueue = new ByteQueue(4096, watcher);
-    }
 
 
     //##############################################################################################################
@@ -41,44 +35,47 @@ public class GateSerialHandlerImpl implements GateSerialHandler {
 
 
     //------------------------------------------------------------------------
-    //  get data from serial port
+    //  logging bytes buffer in hex view
 
-    @Override
-    public void letDataFromSerial(byte[] data) {
-        dataQueue.put(data);
+    private void logDataInHex(String prefix, byte[] bytes) {
+        String output = "";
+        for (byte b : bytes) {
+            output += String.format(" 0x%02X", b);
+        }
+        LOG.debug("{}{}", new Object[]{prefix, output});
     }
 
 
-    public void read() {
+    //------------------------------------------------------------------------
+    //  get data from serial port
 
-        // todo: continue with this point
+    @Override
+    public void receiveMessage(byte[] data) {
 
-        byte first = dataQueue.get();
-
-        switch (first) {
-            case SOF:
-                break;
-            case ACK:
-                break;
-            case NAC:
-                break;
-            case CAN:
-                break;
-            default:
+        synchronized (messages) {
+            messages.add(data);
         }
+        logDataInHex("MESSAGE  :", data);
 
+    }
+
+    @Override
+    public void receiveAcknowledge() {
+        LOG.debug("ACKNOWLEDGE");
+    }
+
+    @Override
+    public void receiveCancel() {
+        LOG.debug("CANCEL");
+    }
+
+    @Override
+    public void receiveNotAcknowledge() {
+        LOG.debug("NOT ACKNOWLEDGE");
     }
 
 
     //##############################################################################################################
     //######    inner classes
-
-    private class DataNotify implements ByteQueueNotify {
-
-        @Override
-        public void hasData() {
-            read();
-        }
-    }
 
 }

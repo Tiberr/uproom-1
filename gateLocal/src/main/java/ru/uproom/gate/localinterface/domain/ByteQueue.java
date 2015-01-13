@@ -14,6 +14,7 @@ public class ByteQueue {
     private int posPut, posGet;
 
     private ByteQueueNotify watcher;
+    private int notifySize = 1;
 
 
     //##############################################################################################################
@@ -50,7 +51,31 @@ public class ByteQueue {
 
 
     //##############################################################################################################
+    //######    getters / setters
+
+
+    public void setNotifySize(int notifySize) {
+        this.notifySize = notifySize;
+        if (createNotify() && watcher != null)
+            synchronized (watcher) {
+                watcher.notify();
+            }
+    }
+
+
+    //##############################################################################################################
     //######    methods
+
+
+    //------------------------------------------------------------------------
+    //  put new byte in queue
+
+    private boolean createNotify() {
+        int dataLength = 0;
+        if (posGet < posPut) dataLength = posPut - posGet;
+        else dataLength = (q.length - posGet) + posPut;
+        return dataLength > notifySize;
+    }
 
 
     //------------------------------------------------------------------------
@@ -60,7 +85,7 @@ public class ByteQueue {
         q[posPut] = b;
         posPut++;
         if (posPut >= q.length) posPut = 0;
-        if (watcher != null) watcher.hasData();
+        if (createNotify() && watcher != null) watcher.hasData(new byte[]{b});
     }
 
 
@@ -91,7 +116,7 @@ public class ByteQueue {
             if (posPut >= q.length) posPut = 0;
         }
 
-        if (watcher != null) watcher.hasData();
+        if (createNotify() && watcher != null) watcher.hasData(b);
     }
 
 

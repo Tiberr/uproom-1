@@ -5,7 +5,7 @@ package ru.uproom.gate.localinterface.output;
  */
 public interface GateSerialPort {
 
-    public void sendCommand(String command);
+    public void sendRequest(byte[] request);
 
     public void stop();
 

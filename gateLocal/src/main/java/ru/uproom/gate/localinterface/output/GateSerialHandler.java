@@ -5,6 +5,12 @@ package ru.uproom.gate.localinterface.output;
  */
 public interface GateSerialHandler {
 
-    public void letDataFromSerial(byte[] data);
+    public void receiveMessage(byte[] data);
+
+    public void receiveAcknowledge();
+
+    public void receiveCancel();
+
+    public void receiveNotAcknowledge();
 
 }
