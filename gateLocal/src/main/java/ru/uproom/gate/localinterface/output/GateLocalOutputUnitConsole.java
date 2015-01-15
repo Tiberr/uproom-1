@@ -2,6 +2,7 @@ package ru.uproom.gate.localinterface.output;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.uproom.gate.localinterface.zwave.driver.ZwaveSerialPort;
 import ru.uproom.gate.transport.command.CommandType;
 import ru.uproom.gate.transport.command.ExitCommand;
 import ru.uproom.gate.transport.command.GetDeviceListCommand;
@@ -39,7 +40,7 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
 
     private GateLocalOutput parent;
 
-    private GateSerialPort serialPort;
+    private ZwaveSerialPort serialPort;
 
 
     //##############################################################################################################
@@ -162,7 +163,7 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
             // work with serial port
             case Handshake:
                 // FUNC_ID_ZW_GET_VERSION = 0x01 0x03 0x00 0x15 0xE9
-                serialPort.sendRequest(new byte[]{0x15, 0x01, 0x03, 0x00, 0x15, (byte) 0xE9});
+                serialPort.sendRequest(new byte[]{0x00, 0x15});
                 break;
 
             default:
