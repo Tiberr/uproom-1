@@ -2,6 +2,8 @@ package ru.uproom.gate.localinterface.zwave.functions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
 
 /**
  * z-wave function
@@ -17,12 +19,16 @@ public class ZWaveFunctionGetRandomHandler implements ZWaveFunctionHandler {
 
 
     @Override
-    public boolean execute(byte[] parameters, ZWaveFunctionHandlePool pool) {
+    public boolean execute(ZWaveMessageTypes messageType, byte[] parameters, ZWaveFunctionHandlePool pool) {
 
-        LOG.debug("execute function : {}",
-                getClass().getAnnotation(ZWaveFunctionHandlerAnnotation.class).value().name());
+        ZWaveFunctionID functionID = getClass().getAnnotation(ZWaveFunctionHandlerAnnotation.class).value();
+        LOG.debug("execute function : {}", new Object[]{
+                functionID.name(),
+                parameters[0] != 0 ? "true" : "false"
+        });
 
-        return false;
+        pool.getDriver().currentRequestReceived(functionID);
+        return true;
     }
 
 }

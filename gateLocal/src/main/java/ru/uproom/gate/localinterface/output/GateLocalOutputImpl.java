@@ -5,7 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.uproom.gate.localinterface.transport.GateLocalTransport;
-import ru.uproom.gate.localinterface.zwave.driver.ZwaveSerialPort;
+import ru.uproom.gate.localinterface.zwave.devices.ZWaveDevicePool;
+import ru.uproom.gate.localinterface.zwave.driver.ZWaveSerialDataHandler;
 import ru.uproom.gate.transport.command.Command;
 import ru.uproom.gate.transport.command.CommandType;
 import ru.uproom.gate.transport.dto.DeviceDTO;
@@ -36,7 +37,9 @@ public class GateLocalOutputImpl implements GateLocalOutput {
     private GateLocalTransport transport;
 
     @Autowired
-    private ZwaveSerialPort serialPort;
+    private ZWaveSerialDataHandler serialDataHandler;
+    @Autowired
+    private ZWaveDevicePool devices;
 
 
     //##############################################################################################################
@@ -54,8 +57,13 @@ public class GateLocalOutputImpl implements GateLocalOutput {
 
 
     @Override
-    public ZwaveSerialPort getSerialPort() {
-        return serialPort;
+    public ZWaveSerialDataHandler getDataHandler() {
+        return serialDataHandler;
+    }
+
+    @Override
+    public ZWaveDevicePool getDevicePool() {
+        return devices;
     }
 
 

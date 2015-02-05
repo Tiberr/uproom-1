@@ -1,5 +1,7 @@
 package ru.uproom.gate.localinterface.zwave.functions;
 
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 

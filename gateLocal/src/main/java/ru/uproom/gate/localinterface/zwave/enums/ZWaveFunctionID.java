@@ -1,4 +1,4 @@
-package ru.uproom.gate.localinterface.zwave.functions;
+package ru.uproom.gate.localinterface.zwave.enums;
 
 /**
  * Created by osipenko on 14.01.15.

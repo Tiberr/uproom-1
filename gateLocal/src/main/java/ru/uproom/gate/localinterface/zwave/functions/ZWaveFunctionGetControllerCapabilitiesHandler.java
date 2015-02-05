@@ -2,6 +2,9 @@ package ru.uproom.gate.localinterface.zwave.functions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.uproom.gate.localinterface.zwave.driver.ZWaveDriver;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
 
 /**
  * z-wave function
@@ -17,12 +20,18 @@ public class ZWaveFunctionGetControllerCapabilitiesHandler implements ZWaveFunct
 
 
     @Override
-    public boolean execute(byte[] parameters, ZWaveFunctionHandlePool pool) {
+    public boolean execute(ZWaveMessageTypes messageType, byte[] parameters, ZWaveFunctionHandlePool pool) {
 
-        LOG.debug("execute function : {}",
-                getClass().getAnnotation(ZWaveFunctionHandlerAnnotation.class).value().name());
+        ZWaveDriver driver = pool.getDriver();
 
-        return false;
+        if (parameters.length > 0)
+            driver.setControllerCapabilitiesFlag(parameters[0]);
+
+        ZWaveFunctionID functionID = getClass().getAnnotation(ZWaveFunctionHandlerAnnotation.class).value();
+        LOG.debug("execute function : {}", functionID.name());
+
+        driver.currentRequestReceived(functionID);
+        return true;
     }
 
 }

@@ -1,5 +1,7 @@
 package ru.uproom.gate.localinterface.zwave.functions;
 
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
+
 /**
  * marker interface for classes of command handling
  * </p>
@@ -7,6 +9,6 @@ package ru.uproom.gate.localinterface.zwave.functions;
  */
 public interface ZWaveFunctionHandler {
 
-    public boolean execute(byte[] parameters, ZWaveFunctionHandlePool pool);
+    public boolean execute(ZWaveMessageTypes messageType, byte[] parameters, ZWaveFunctionHandlePool pool);
 
 }

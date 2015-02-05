@@ -2,7 +2,11 @@ package ru.uproom.gate.localinterface.output;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.uproom.gate.localinterface.zwave.driver.ZwaveSerialPort;
+import ru.uproom.gate.localinterface.zwave.devices.ZWaveDevicePool;
+import ru.uproom.gate.localinterface.zwave.driver.ZWaveMessage;
+import ru.uproom.gate.localinterface.zwave.driver.ZWaveSerialDataHandler;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
 import ru.uproom.gate.transport.command.CommandType;
 import ru.uproom.gate.transport.command.ExitCommand;
 import ru.uproom.gate.transport.command.GetDeviceListCommand;
@@ -40,7 +44,9 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
 
     private GateLocalOutput parent;
 
-    private ZwaveSerialPort serialPort;
+    private ZWaveSerialDataHandler serialDataHandler;
+    private ZWaveDevicePool devices;
+    private boolean switchState;
 
 
     //##############################################################################################################
@@ -52,7 +58,8 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
         input = new ConsoleInput(this);
         threadInput = new Thread(input);
         threadInput.start();
-        serialPort = parent.getSerialPort();
+        serialDataHandler = parent.getDataHandler();
+        devices = parent.getDevicePool();
     }
 
 
@@ -155,15 +162,20 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
                 break;
             case Exit:
                 parent.setCommandFromUnit(new ExitCommand());
-                serialPort.stop();
+                serialDataHandler.stop(false);
                 break;
+            // toggle parameter Switch at node 0x06
             case SetDeviceParameter:
-                setDeviceParameter(cmdArray);
+                switchState = switchState ? false : true;
+                DeviceDTO dto = new DeviceDTO(0x00, 0x06, DeviceType.BinarySwitch);
+                dto.getParameters().put(DeviceParametersNames.Switch, switchState);
+                devices.applyDeviceParametersFromDto(dto);
+                //setDeviceParameter(cmdArray);
                 break;
             // work with serial port
             case Handshake:
-                // FUNC_ID_ZW_GET_VERSION = 0x01 0x03 0x00 0x15 0xE9
-                serialPort.sendRequest(new byte[]{0x00, 0x15});
+                serialDataHandler.addMessageToSendingQueue(
+                        new ZWaveMessage(ZWaveMessageTypes.Request, ZWaveFunctionID.GET_VERSION, false));
                 break;
 
             default:

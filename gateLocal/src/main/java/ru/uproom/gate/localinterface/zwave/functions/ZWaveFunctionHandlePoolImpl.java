@@ -4,7 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.uproom.gate.localinterface.zwave.devices.ZWaveDevicePool;
 import ru.uproom.gate.localinterface.zwave.driver.ZWaveDriver;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
 import ru.uproom.gate.transport.domain.ClassesSearcher;
 
 import javax.annotation.PostConstruct;
@@ -26,8 +29,12 @@ public class ZWaveFunctionHandlePoolImpl implements ZWaveFunctionHandlePool {
 
 
     private static final Logger LOG = LoggerFactory.getLogger(ZWaveFunctionHandlePoolImpl.class);
+
     @Autowired
     ZWaveDriver driver;
+    @Autowired
+    ZWaveDevicePool devicePool;
+
     private Map<ZWaveFunctionID, ZWaveFunctionHandler> functionHandlers =
             new EnumMap<>(ZWaveFunctionID.class);
 
@@ -48,6 +55,11 @@ public class ZWaveFunctionHandlePoolImpl implements ZWaveFunctionHandlePool {
     @Override
     public ZWaveDriver getDriver() {
         return driver;
+    }
+
+    @Override
+    public ZWaveDevicePool getDevicePool() {
+        return devicePool;
     }
 
 
@@ -91,11 +103,15 @@ public class ZWaveFunctionHandlePoolImpl implements ZWaveFunctionHandlePool {
             return false;
         }
 
+        ZWaveMessageTypes type = ZWaveMessageTypes.getByCode(function[0]);
         byte[] parameters = new byte[function.length - 2];
         System.arraycopy(function, 2, parameters, 0, parameters.length);
-        handler.execute(parameters, this);
+        handler.execute(type, parameters, this);
 
         return true;
     }
 
+    public void setDevicePoolParameters(int homeId, byte controllerId) {
+        devicePool.setParameters(homeId, controllerId);
+    }
 }

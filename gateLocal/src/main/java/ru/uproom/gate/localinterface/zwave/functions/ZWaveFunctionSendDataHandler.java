@@ -2,6 +2,8 @@ package ru.uproom.gate.localinterface.zwave.functions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
 
 /**
  * z-wave function
@@ -17,10 +19,12 @@ public class ZWaveFunctionSendDataHandler implements ZWaveFunctionHandler {
 
 
     @Override
-    public boolean execute(byte[] parameters, ZWaveFunctionHandlePool pool) {
+    public boolean execute(ZWaveMessageTypes messageType, byte[] parameters, ZWaveFunctionHandlePool pool) {
 
-        LOG.debug("execute function : {}",
-                getClass().getAnnotation(ZWaveFunctionHandlerAnnotation.class).value().name());
+        LOG.debug("execute function : {} {}", new Object[]{
+                getClass().getAnnotation(ZWaveFunctionHandlerAnnotation.class).value().name(),
+                parameters[0] != 0 ? "delivered" : "NOT delivered"
+        });
 
         return false;
     }
