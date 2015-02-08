@@ -3,7 +3,7 @@ package ru.uproom.gate.localinterface.zwave.commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClasses;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClassNames;
 import ru.uproom.gate.transport.domain.ClassesSearcher;
 
 import javax.annotation.PostConstruct;
@@ -23,8 +23,8 @@ public class ZWaveCommandClassFactoryImpl implements ZWaveCommandClassFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZWaveCommandClassFactoryImpl.class);
 
-    private Map<ZWaveCommandClasses, ZWaveCommandClass> commandClasses =
-            new EnumMap<>(ZWaveCommandClasses.class);
+    private Map<ZWaveCommandClassNames, ZWaveCommandClass> commandClasses =
+            new EnumMap<>(ZWaveCommandClassNames.class);
 
 
     //##############################################################################################################
@@ -56,7 +56,7 @@ public class ZWaveCommandClassFactoryImpl implements ZWaveCommandClassFactory {
 
     @Override
     public ZWaveCommandClass getCommandClass(byte commandClassId) {
-        return commandClasses.get(ZWaveCommandClasses.getByCode(commandClassId));
+        return commandClasses.get(ZWaveCommandClassNames.getByCode(commandClassId));
     }
 
 }

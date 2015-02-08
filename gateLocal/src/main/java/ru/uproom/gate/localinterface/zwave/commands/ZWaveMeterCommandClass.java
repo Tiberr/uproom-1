@@ -3,14 +3,14 @@ package ru.uproom.gate.localinterface.zwave.commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.localinterface.zwave.devices.ZWaveDevice;
-import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClasses;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClassNames;
 
 /**
  * z-wave command class
  * <p/>
  * Created by osipenko on 10.09.14.
  */
-@ZWaveCommandClassesAnnotation(value = ZWaveCommandClasses.Meter)
+@ZWaveCommandClassesAnnotation(value = ZWaveCommandClassNames.Meter)
 public class ZWaveMeterCommandClass extends ZWaveCommandClassImpl {
 
 
@@ -19,12 +19,15 @@ public class ZWaveMeterCommandClass extends ZWaveCommandClassImpl {
 
 
     @Override
-    protected int createExtraParameterList(ZWaveDevice device) {
+    public int createParameterList(ZWaveDevice device) {
+
+        // todo : 15.02.10 continue from this point
+
         int parametersNumber = 0;
         String parameterNames = "";
 
-        ZWaveCommandClasses annotation =
-                (ZWaveCommandClasses) getClass().getAnnotation(ZWaveCommandClassesAnnotation.class).value();
+        ZWaveCommandClassNames annotation =
+                (ZWaveCommandClassNames) getClass().getAnnotation(ZWaveCommandClassesAnnotation.class).value();
         LOG.debug("ADD COMMAND CLASS : {}, implement {} parameter(s) ({}) ", new Object[]{
                 annotation.name(),
                 parametersNumber,

@@ -1,6 +1,6 @@
 package ru.uproom.gate.localinterface.zwave.commands;
 
-import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClasses;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClassNames;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -10,5 +10,5 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ZWaveCommandClassesAnnotation {
-    ZWaveCommandClasses value();
+    ZWaveCommandClassNames value();
 }

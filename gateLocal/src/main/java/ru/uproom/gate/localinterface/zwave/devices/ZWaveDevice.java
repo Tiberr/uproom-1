@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.localinterface.domain.WorkingHelper;
 import ru.uproom.gate.localinterface.zwave.commands.ZWaveCommandClass;
-import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClasses;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClassNames;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveDeviceParameterNames;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveExtraEnums;
 import ru.uproom.gate.transport.dto.DeviceDTO;
@@ -24,7 +24,7 @@ public class ZWaveDevice {
 
 
     private static final Logger LOG = LoggerFactory.getLogger(ZWaveDevice.class);
-    private final Map<Byte, ZWaveCommandClass> commandClasses = new HashMap<>();
+    private final Map<ZWaveCommandClassNames, ZWaveCommandClass> commandClasses = new HashMap<>();
     private final Map<DeviceParametersNames, ZWaveDeviceParameterNames> serverParameterIds = new HashMap<>();
 
     private final Map<ZWaveDeviceParameterNames, ZWaveDeviceParameter> parameters = new HashMap<>();
@@ -68,11 +68,12 @@ public class ZWaveDevice {
         ZWaveCommandClass commandClass = devicePool.getCommandClassFactory().getCommandClass(commandClassId);
         if (commandClass == null) {
             LOG.info("ADD COMMAND CLASS : {}, not implemented", new Object[]{
-                    ZWaveCommandClasses.getByCode(commandClassId).name()
+                    ZWaveCommandClassNames.getByCode(commandClassId).name()
             });
             return;
         }
 
+        commandClasses.put(ZWaveCommandClassNames.getByCode(commandClassId), commandClass);
         commandClass.createParameterList(this);
 
     }
@@ -80,13 +81,23 @@ public class ZWaveDevice {
 
     //-----------------------------------------------------------------------------------
 
-    public void applyCommandClassList(byte[] commandClassList) {
+    public void fillCommandClassList(byte[] commandClassList) {
 
         for (byte b : commandClassList) {
             if (b == ZWaveExtraEnums.END_OF_LIST_SUPPORTED_COMMAND_CLASS_MARK)
                 break;
             addCommandClass(b);
         }
+    }
+
+
+    //-----------------------------------------------------------------------------------
+
+    public void applyCommandClassVersion(ZWaveCommandClassNames commandClassName, byte version) {
+        ZWaveCommandClass commandClass = commandClasses.get(commandClassName);
+        if (commandClass == null) return;
+
+        commandClass.setVersion(version);
     }
 
 
@@ -121,11 +132,27 @@ public class ZWaveDevice {
 
     //-----------------------------------------------------------------------------------
 
-    public void applyDeviceParametersFromByteArray(ZWaveCommandClasses commandClass, byte[] parameters) {
+    public void applyDeviceParametersFromByteArray(ZWaveCommandClassNames commandClassId, byte[] parameters) {
+
+        ZWaveCommandClass commandClass = commandClasses.get(commandClassId);
+        if (commandClass == null) return;
+
+        commandClass.messageHandler(this, parameters);
+
         LOG.debug("RECEIVE PARAMETER : class ({}) parameters ({})", new Object[]{
-                commandClass.name(),
+                commandClassId.name(),
                 WorkingHelper.createHexStringFromByteArray(parameters)
         });
+    }
+
+
+    //-----------------------------------------------------------------------------------
+
+    public void applyDeviceParametersFromName(ZWaveDeviceParameterNames parameterName, String value) {
+        ZWaveDeviceParameter parameter = parameters.get(parameterName);
+        if (parameter == null) return;
+
+        parameter.setValue(value);
     }
 
 

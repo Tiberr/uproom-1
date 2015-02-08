@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.uproom.gate.localinterface.zwave.commands.ZWaveCommandClassFactoryImpl;
 import ru.uproom.gate.localinterface.zwave.driver.ZWaveDriver;
 import ru.uproom.gate.localinterface.zwave.driver.ZWaveMessage;
-import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClasses;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClassNames;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
 import ru.uproom.gate.transport.dto.DeviceDTO;
@@ -128,7 +128,7 @@ public class ZWaveDevicePoolImpl implements ZWaveDevicePool {
         ZWaveDevice device = devices.get(deviceId);
         if (device == null) return;
 
-        device.applyCommandClassList(info);
+        device.fillCommandClassList(info);
     }
 
 
@@ -154,7 +154,7 @@ public class ZWaveDevicePoolImpl implements ZWaveDevicePool {
         ZWaveDevice device = devices.get((int) data[1]);
         if (device == null) return;
 
-        ZWaveCommandClasses commandClass = ZWaveCommandClasses.getByCode(data[3]);
+        ZWaveCommandClassNames commandClass = ZWaveCommandClassNames.getByCode(data[3]);
 
         byte[] parameters = new byte[data[2] - 1];
         System.arraycopy(data, 4, parameters, 0, parameters.length);

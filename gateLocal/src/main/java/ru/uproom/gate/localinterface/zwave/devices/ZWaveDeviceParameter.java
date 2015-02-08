@@ -6,6 +6,9 @@ import ru.uproom.gate.localinterface.zwave.commands.ZWaveCommandClass;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveDeviceParameterNames;
 import ru.uproom.gate.transport.dto.parameters.DeviceParametersNames;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Base class for Z-Wave Node Value
  * <p/>
@@ -26,7 +29,9 @@ public class ZWaveDeviceParameter {
     private ZWaveDeviceParameterNames zWaveName;
     private DeviceParametersNames serverName;
 
-    private String value;
+    private String value = "";
+
+    private List<ZWaveDeviceParameterListener> listeners = new ArrayList<>();
 
 
     //##############################################################################################################
@@ -73,7 +78,26 @@ public class ZWaveDeviceParameter {
     }
 
     protected void setValue(String value) {
+        if (this.value.equalsIgnoreCase(value)) return;
+
         this.value = value;
+        LOG.debug("PARAMETER CHANGED : parameter ({}) now set value ({})", new Object[]{
+                zWaveName,
+                value
+        });
+
+        while (listeners.size() > 0) {
+            ZWaveDeviceParameterListener listener = null;
+            synchronized (listeners) {
+                listener = listeners.get(0);
+            }
+            if (listener == null) continue;
+            listener.onChange();
+            synchronized (listeners) {
+                listeners.remove(listener);
+            }
+        }
+
     }
 
 
@@ -81,13 +105,17 @@ public class ZWaveDeviceParameter {
     //######    methods
 
 
-    // must be overriding
-    public String fetchValue() {
-        return null;
+    // initiate get value request from device
+    public void fetchValue(ZWaveDeviceParameterListener listener) {
+        commandClass.requestDeviceParameter(device);
+        synchronized (listeners) {
+            listeners.add(listener);
+        }
     }
 
-    // must be overriding
+    // initiate set value request to device
     public void applyValue(String value) {
+        commandClass.setDeviceParameter(this, value);
     }
 
 

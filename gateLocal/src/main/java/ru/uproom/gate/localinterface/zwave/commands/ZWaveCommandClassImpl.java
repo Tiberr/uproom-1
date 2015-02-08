@@ -3,7 +3,8 @@ package ru.uproom.gate.localinterface.zwave.commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.localinterface.zwave.devices.ZWaveDevice;
-import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClasses;
+import ru.uproom.gate.localinterface.zwave.devices.ZWaveDeviceParameter;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClassNames;
 
 /**
  * z-wave command class
@@ -21,8 +22,8 @@ public class ZWaveCommandClassImpl implements ZWaveCommandClass {
 
 
     public ZWaveCommandClassImpl() {
-        ZWaveCommandClasses annotation =
-                (ZWaveCommandClasses) getClass().getAnnotation(ZWaveCommandClassesAnnotation.class).value();
+        ZWaveCommandClassNames annotation =
+                (ZWaveCommandClassNames) getClass().getAnnotation(ZWaveCommandClassesAnnotation.class).value();
         id = annotation.getCode();
     }
 
@@ -45,20 +46,25 @@ public class ZWaveCommandClassImpl implements ZWaveCommandClass {
 
     @Override
     public int createParameterList(ZWaveDevice device) {
-        return createExtraParameterList(device);
+        return 0;
     }
 
     @Override
     public void messageHandler(ZWaveDevice device, byte[] data) {
-        messageExtraHandler(device, data);
     }
 
-
-    protected int createExtraParameterList(ZWaveDevice device) {
-        return 0;
+    @Override
+    public void requestDeviceState(ZWaveDevice device) {
     }
 
-    protected void messageExtraHandler(ZWaveDevice device, byte[] data) {
+    @Override
+    public void requestDeviceParameter(ZWaveDevice device) {
+
+    }
+
+    @Override
+    public void setDeviceParameter(ZWaveDeviceParameter parameter, String value) {
+
     }
 
 }

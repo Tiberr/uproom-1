@@ -5,7 +5,7 @@ package ru.uproom.gate.localinterface.zwave.enums;
  * <p/>
  * Created by osipenko on 16.01.15.
  */
-public enum ZWaveCommandClasses {
+public enum ZWaveCommandClassNames {
 
     NoOperation(0x00),
     Alarm(0x71),
@@ -56,13 +56,13 @@ public enum ZWaveCommandClasses {
 
     private byte code;
 
-    ZWaveCommandClasses(int code) {
+    ZWaveCommandClassNames(int code) {
         this.code = (byte) code;
     }
 
-    public static ZWaveCommandClasses getByCode(byte code) {
+    public static ZWaveCommandClassNames getByCode(byte code) {
 
-        for (ZWaveCommandClasses value : values()) {
+        for (ZWaveCommandClassNames value : values()) {
             if (value.getCode() == code) return value;
         }
 
