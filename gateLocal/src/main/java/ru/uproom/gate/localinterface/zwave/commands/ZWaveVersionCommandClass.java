@@ -39,6 +39,7 @@ public class ZWaveVersionCommandClass extends ZWaveCommandClassImpl {
         );
         device.addParameter(parameter);
         parametersNumber++;
+        if (!parameterNames.isEmpty()) parameterNames += ", ";
         parameterNames += parameter.getZWaveName().name();
 
         parameter = new ZWaveDeviceParameter(
@@ -49,6 +50,7 @@ public class ZWaveVersionCommandClass extends ZWaveCommandClassImpl {
         );
         device.addParameter(parameter);
         parametersNumber++;
+        if (!parameterNames.isEmpty()) parameterNames += ", ";
         parameterNames += parameter.getZWaveName().name();
 
         parameter = new ZWaveDeviceParameter(
@@ -59,6 +61,7 @@ public class ZWaveVersionCommandClass extends ZWaveCommandClassImpl {
         );
         device.addParameter(parameter);
         parametersNumber++;
+        if (!parameterNames.isEmpty()) parameterNames += ", ";
         parameterNames += parameter.getZWaveName().name();
 
         ZWaveCommandClassNames annotation =
@@ -146,7 +149,7 @@ public class ZWaveVersionCommandClass extends ZWaveCommandClassImpl {
         ZWaveMessage message = new ZWaveMessage(
                 ZWaveMessageTypes.Request,
                 ZWaveFunctionID.SEND_DATA,
-                false
+                true
         );
         byte[] data = new byte[6];
         data[0] = (byte) device.getDeviceId();

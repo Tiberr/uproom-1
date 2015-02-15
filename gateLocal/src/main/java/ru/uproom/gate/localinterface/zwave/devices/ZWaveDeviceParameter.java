@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.localinterface.zwave.commands.ZWaveCommandClass;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveDeviceParameterNames;
+import ru.uproom.gate.localinterface.zwave.enums.ZWaveMeterUnits;
 import ru.uproom.gate.transport.dto.parameters.DeviceParametersNames;
 
 import java.util.ArrayList;
@@ -30,6 +31,13 @@ public class ZWaveDeviceParameter {
     private DeviceParametersNames serverName;
 
     private String value = "";
+    private byte precision;
+    private ZWaveMeterUnits units;
+
+    private String prevValue = "";
+    private byte prevPrecision;
+
+    private int interval;
 
     private List<ZWaveDeviceParameterListener> listeners = new ArrayList<>();
 
@@ -53,31 +61,45 @@ public class ZWaveDeviceParameter {
     //######    getters / setters
 
 
+    //-------------------------------------------------------------------------------------
+
     public ZWaveDevice getDevice() {
         return device;
     }
 
+
+    //-------------------------------------------------------------------------------------
 
     public ZWaveCommandClass getCommandClass() {
         return commandClass;
     }
 
 
+    //-------------------------------------------------------------------------------------
+
     public ZWaveDeviceParameterNames getZWaveName() {
         return zWaveName;
     }
 
+    public void setZWaveName(ZWaveDeviceParameterNames name) {
+        zWaveName = name;
+    }
+
+
+    //-------------------------------------------------------------------------------------
 
     public DeviceParametersNames getServerName() {
         return serverName;
     }
 
 
-    protected String getValue() {
+    //-------------------------------------------------------------------------------------
+
+    public String getValue() {
         return value;
     }
 
-    protected void setValue(String value) {
+    public void setValue(String value) {
         if (this.value.equalsIgnoreCase(value)) return;
 
         this.value = value;
@@ -101,11 +123,68 @@ public class ZWaveDeviceParameter {
     }
 
 
+    //-------------------------------------------------------------------------------------
+
+    public ZWaveMeterUnits getUnits() {
+        return units;
+    }
+
+    public void setUnits(ZWaveMeterUnits units) {
+        this.units = units;
+    }
+
+
+    //-------------------------------------------------------------------------------------
+
+    public byte getPrecision() {
+        return precision;
+    }
+
+    public void setPrecision(byte precision) {
+        this.precision = precision;
+    }
+
+
+    //-------------------------------------------------------------------------------------
+
+    public String getPrevValue() {
+        return prevValue;
+    }
+
+    public void setPrevValue(String prevValue) {
+        this.prevValue = prevValue;
+    }
+
+
+    //-------------------------------------------------------------------------------------
+
+    public byte getPrevPrecision() {
+        return prevPrecision;
+    }
+
+    public void setPrevPrecision(byte prevPrecision) {
+        this.prevPrecision = prevPrecision;
+    }
+
+
+    //-------------------------------------------------------------------------------------
+
+    public int getInterval() {
+        return interval;
+    }
+
+    public void setInterval(int interval) {
+        this.interval = interval;
+    }
+
+
     //##############################################################################################################
     //######    methods
 
 
+    //-------------------------------------------------------------------------------------
     // initiate get value request from device
+
     public void fetchValue(ZWaveDeviceParameterListener listener) {
         commandClass.requestDeviceParameter(device);
         synchronized (listeners) {
@@ -113,7 +192,10 @@ public class ZWaveDeviceParameter {
         }
     }
 
+
+    //-------------------------------------------------------------------------------------
     // initiate set value request to device
+
     public void applyValue(String value) {
         commandClass.setDeviceParameter(this, value);
     }

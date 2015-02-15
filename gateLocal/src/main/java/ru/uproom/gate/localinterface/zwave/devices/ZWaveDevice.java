@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.localinterface.domain.WorkingHelper;
 import ru.uproom.gate.localinterface.zwave.commands.ZWaveCommandClass;
+import ru.uproom.gate.localinterface.zwave.commands.ZWaveVersionCommandClass;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClassNames;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveDeviceParameterNames;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveExtraEnums;
@@ -88,6 +89,24 @@ public class ZWaveDevice {
                 break;
             addCommandClass(b);
         }
+
+        getCommandClassesVersions();
+    }
+
+
+    //-----------------------------------------------------------------------------------
+
+    private void getCommandClassesVersions() {
+
+        ZWaveVersionCommandClass versionClass =
+                (ZWaveVersionCommandClass) commandClasses.get(ZWaveCommandClassNames.Version);
+        for (ZWaveCommandClassNames className : commandClasses.keySet()) {
+            if (versionClass != null)
+                versionClass.requestCommandClassVersion(this, className);
+            else
+                commandClasses.get(className).setVersion((byte) 0x01);
+        }
+
     }
 
 
@@ -98,6 +117,7 @@ public class ZWaveDevice {
         if (commandClass == null) return;
 
         commandClass.setVersion(version);
+        commandClass.requestDeviceState(this);
     }
 
 
@@ -139,7 +159,7 @@ public class ZWaveDevice {
 
         commandClass.messageHandler(this, parameters);
 
-        LOG.debug("RECEIVE PARAMETER : class ({}) parameters ({})", new Object[]{
+        LOG.debug("RECEIVE PARAMETER : class ({}) parameters ({} )", new Object[]{
                 commandClassId.name(),
                 WorkingHelper.createHexStringFromByteArray(parameters)
         });
@@ -153,6 +173,13 @@ public class ZWaveDevice {
         if (parameter == null) return;
 
         parameter.setValue(value);
+    }
+
+
+    //-----------------------------------------------------------------------------------
+
+    public ZWaveDeviceParameter getDeviceParameterByName(ZWaveDeviceParameterNames parameterName) {
+        return parameters.get(parameterName);
     }
 
 
