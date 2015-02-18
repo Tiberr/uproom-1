@@ -16,11 +16,18 @@ public interface ZWaveCommandClass {
     public ZWaveCommandClassNames getName();
 
     public byte getVersion();
+
     public void setVersion(byte version);
 
-    public int createParameterList(ZWaveDevice device);
+    public int createParameterList(ZWaveDevice device, byte instance);
+
+    public void createInstance(ZWaveDevice device, byte instance);
+
+    public void createInstances(ZWaveDevice device, byte instances);
 
     public void messageHandler(ZWaveDevice device, byte[] data);
+
+    public void messageHandler(ZWaveDevice device, byte[] data, byte instance);
 
     public void requestDeviceState(ZWaveDevice device);
 

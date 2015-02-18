@@ -23,7 +23,7 @@ public class ZWaveMeterCommandClass extends ZWaveCommandClassImpl {
 
 
     @Override
-    public int createParameterList(ZWaveDevice device) {
+    public int createParameterList(ZWaveDevice device, byte instance) {
 
         int parametersNumber = 0;
         String parameterNames = "";

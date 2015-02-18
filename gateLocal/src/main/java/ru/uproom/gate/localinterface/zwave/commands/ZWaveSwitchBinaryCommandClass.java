@@ -27,14 +27,16 @@ public class ZWaveSwitchBinaryCommandClass extends ZWaveCommandClassImpl {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public int createParameterList(ZWaveDevice device) {
+    public int createParameterList(ZWaveDevice device, byte instance) {
         int parametersNumber = 0;
         String parameterNames = "";
 
+        ZWaveDeviceParameterNames parameterName =
+                ZWaveDeviceParameterNames.Switch.getInstanceName(instance);
         ZWaveDeviceParameter parameter = new ZWaveDeviceParameter(
                 device,
                 this,
-                ZWaveDeviceParameterNames.Switch,
+                parameterName,
                 DeviceParametersNames.Switch
         );
         device.addParameter(parameter);
@@ -56,13 +58,15 @@ public class ZWaveSwitchBinaryCommandClass extends ZWaveCommandClassImpl {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void messageHandler(ZWaveDevice device, byte[] data) {
-        super.messageHandler(device, data);
+    public void messageHandler(ZWaveDevice device, byte[] data, byte instance) {
+        super.messageHandler(device, data, instance);
 
         // command REPORT
         if (data[0] == 0x03) {
+            ZWaveDeviceParameterNames parameterName =
+                    ZWaveDeviceParameterNames.Switch.getInstanceName(instance);
             device.applyDeviceParametersFromName(
-                    ZWaveDeviceParameterNames.Switch, (data[1] != 0 ? "true" : "false"));
+                    parameterName, (data[1] != 0 ? "true" : "false"));
         }
     }
 
@@ -104,7 +108,7 @@ public class ZWaveSwitchBinaryCommandClass extends ZWaveCommandClassImpl {
     public void setDeviceParameter(ZWaveDeviceParameter parameter, String value) {
         super.setDeviceParameter(parameter, value);
 
-        switch (parameter.getZWaveName()) {
+        switch (parameter.getZWaveName().getBaseName()) {
             case Switch:
                 setSwitchDeviceParameter(parameter, value);
                 break;
@@ -124,6 +128,7 @@ public class ZWaveSwitchBinaryCommandClass extends ZWaveCommandClassImpl {
                 ZWaveFunctionID.SEND_DATA,
                 false
         );
+        message.applyInstance(parameter.getDevice(), parameter.getZWaveName().getInstance());
         byte[] data = new byte[6];
         data[0] = (byte) parameter.getDevice().getDeviceId();
         data[1] = 0x03;

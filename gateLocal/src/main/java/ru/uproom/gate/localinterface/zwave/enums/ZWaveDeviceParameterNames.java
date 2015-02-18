@@ -96,4 +96,19 @@ public enum ZWaveDeviceParameterNames {
     public int getParameterId() {
         return parameterId;
     }
+
+    public byte getInstance() {
+        return (byte) ((parameterId & 0x00FF0000) >> 16);
+    }
+
+    public ZWaveDeviceParameterNames getInstanceName(byte instance) {
+        ZWaveDeviceParameterNames parameterName
+                = byParameterId(parameterId & 0xFF00FFFF | (instance << 16));
+        return (parameterName != Unknown) ? parameterName : this;
+    }
+
+    public ZWaveDeviceParameterNames getBaseName() {
+        ZWaveDeviceParameterNames parameterName = byParameterId(parameterId & 0xFF01FFFF);
+        return (parameterName != Unknown) ? parameterName : this;
+    }
 }

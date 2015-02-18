@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.localinterface.domain.WorkingHelper;
 import ru.uproom.gate.localinterface.zwave.commands.ZWaveCommandClass;
+import ru.uproom.gate.localinterface.zwave.commands.ZWaveMultiInstanceCommandClass;
 import ru.uproom.gate.localinterface.zwave.commands.ZWaveVersionCommandClass;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClassNames;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveDeviceParameterNames;
@@ -75,8 +76,8 @@ public class ZWaveDevice {
         }
 
         commandClasses.put(ZWaveCommandClassNames.getByCode(commandClassId), commandClass);
-        commandClass.createParameterList(this);
-
+        // todo : probably fill parameter list in requestCommandClassInstances. Check it.
+        commandClass.createParameterList(this, (byte) 0x01);
     }
 
 
@@ -90,13 +91,14 @@ public class ZWaveDevice {
             addCommandClass(b);
         }
 
-        getCommandClassesVersions();
+        requestCommandClassesVersions();
+        requestCommandClassesInstances();
     }
 
 
     //-----------------------------------------------------------------------------------
 
-    private void getCommandClassesVersions() {
+    private void requestCommandClassesVersions() {
 
         ZWaveVersionCommandClass versionClass =
                 (ZWaveVersionCommandClass) commandClasses.get(ZWaveCommandClassNames.Version);
@@ -118,6 +120,32 @@ public class ZWaveDevice {
 
         commandClass.setVersion(version);
         commandClass.requestDeviceState(this);
+    }
+
+
+    //-----------------------------------------------------------------------------------
+
+    private void requestCommandClassesInstances() {
+
+        ZWaveMultiInstanceCommandClass instanceClass =
+                (ZWaveMultiInstanceCommandClass) commandClasses.get(ZWaveCommandClassNames.MultiInstance);
+        for (ZWaveCommandClassNames className : commandClasses.keySet()) {
+            if (instanceClass != null)
+                instanceClass.requestInstance(this, className);
+            else
+                commandClasses.get(className).createInstances(this, (byte) 0x01);
+        }
+
+    }
+
+
+    //-----------------------------------------------------------------------------------
+
+    public void applyCommandClassInstances(ZWaveCommandClassNames commandClassName, byte instances) {
+        ZWaveCommandClass commandClass = commandClasses.get(commandClassName);
+        if (commandClass == null) return;
+
+        commandClass.createInstances(this, instances);
     }
 
 
@@ -152,17 +180,23 @@ public class ZWaveDevice {
 
     //-----------------------------------------------------------------------------------
 
-    public void applyDeviceParametersFromByteArray(ZWaveCommandClassNames commandClassId, byte[] parameters) {
+    public void applyDeviceParametersFromByteArray(
+            ZWaveCommandClassNames commandClassId, byte[] parameters, byte instance) {
 
         ZWaveCommandClass commandClass = commandClasses.get(commandClassId);
         if (commandClass == null) return;
 
-        commandClass.messageHandler(this, parameters);
+        commandClass.messageHandler(this, parameters, instance);
 
         LOG.debug("RECEIVE PARAMETER : class ({}) parameters ({} )", new Object[]{
                 commandClassId.name(),
                 WorkingHelper.createHexStringFromByteArray(parameters)
         });
+    }
+
+    public void applyDeviceParametersFromByteArray(
+            ZWaveCommandClassNames commandClassId, byte[] parameters) {
+        applyDeviceParametersFromByteArray(commandClassId, parameters, (byte) 0x01);
     }
 
 

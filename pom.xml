@@ -11,6 +11,7 @@
         <module>gateApi</module>
         <module>gate</module>
         <module>gateLocal</module>
+        <module>rkjamlib</module>
     </modules>
     <build>
         <plugins>

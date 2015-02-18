@@ -68,12 +68,32 @@ public class ZWaveCommandClassImpl implements ZWaveCommandClass {
     }
 
     @Override
-    public int createParameterList(ZWaveDevice device) {
+    public int createParameterList(ZWaveDevice device, byte instance) {
         return 0;
     }
 
     @Override
+    public void createInstance(ZWaveDevice device, byte instance) {
+        createParameterList(device, instance);
+
+        // todo : stop here
+
+    }
+
+    @Override
+    public void createInstances(ZWaveDevice device, byte instances) {
+        for (byte i = 1; i <= instances; ++i) {
+            createInstance(device, i);
+        }
+    }
+
+    @Override
     public void messageHandler(ZWaveDevice device, byte[] data) {
+        messageHandler(device, data, (byte) 0x01);
+    }
+
+    @Override
+    public void messageHandler(ZWaveDevice device, byte[] data, byte instance) {
     }
 
     @Override

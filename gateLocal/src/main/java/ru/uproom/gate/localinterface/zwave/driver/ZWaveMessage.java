@@ -1,5 +1,6 @@
 package ru.uproom.gate.localinterface.zwave.driver;
 
+import ru.uproom.gate.localinterface.zwave.devices.ZWaveDevice;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
 
@@ -117,6 +118,10 @@ public class ZWaveMessage {
             System.arraycopy(parameters, 0, bytes, 2, parameters.length);
 
         return bytes;
+    }
+
+
+    public void applyInstance(ZWaveDevice device, byte instance) {
     }
 
 
