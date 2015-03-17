@@ -74,22 +74,25 @@ public class ZWaveSwitchBinaryCommandClass extends ZWaveCommandClassImpl {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceState(ZWaveDevice device) {
-        super.requestDeviceState(device);
+    public void requestDeviceState(ZWaveDevice device, byte instance) {
+        super.requestDeviceState(device, instance);
+
+        requestDeviceParameter(device, instance);
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceParameter(ZWaveDevice device) {
-        super.requestDeviceParameter(device);
+    public void requestDeviceParameter(ZWaveDevice device, byte instance) {
+        super.requestDeviceParameter(device, instance);
 
         ZWaveMessage message = new ZWaveMessage(
                 ZWaveMessageTypes.Request,
                 ZWaveFunctionID.SEND_DATA,
                 false
         );
+        message.applyInstance(device, this, instance);
         byte[] data = new byte[5];
         data[0] = (byte) device.getDeviceId();
         data[1] = 0x02;
@@ -128,7 +131,7 @@ public class ZWaveSwitchBinaryCommandClass extends ZWaveCommandClassImpl {
                 ZWaveFunctionID.SEND_DATA,
                 false
         );
-        message.applyInstance(parameter.getDevice(), parameter.getZWaveName().getInstance());
+        message.applyInstance(parameter.getDevice(), this, parameter.getZWaveName().getInstance());
         byte[] data = new byte[6];
         data[0] = (byte) parameter.getDevice().getDeviceId();
         data[1] = 0x03;
@@ -139,6 +142,16 @@ public class ZWaveSwitchBinaryCommandClass extends ZWaveCommandClassImpl {
         message.setParameters(data);
         parameter.getDevice().getDevicePool().getDriver().getSerialDataHandler().addMessageToSendingQueue(message);
 
+    }
+
+
+    //-----------------------------------------------------------------------------------------------------------
+
+    @Override
+    public void applyValueBasic(ZWaveDevice device, byte instance, byte value) {
+        super.applyValueBasic(device, instance, value);
+
+        // todo: apply WakeUp in this place
     }
 
 }

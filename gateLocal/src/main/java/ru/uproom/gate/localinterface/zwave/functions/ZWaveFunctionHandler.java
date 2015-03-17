@@ -1,5 +1,6 @@
 package ru.uproom.gate.localinterface.zwave.functions;
 
+import ru.uproom.gate.localinterface.zwave.driver.ZWaveMessage;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
 
 /**
@@ -9,6 +10,11 @@ import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
  */
 public interface ZWaveFunctionHandler {
 
-    public boolean execute(ZWaveMessageTypes messageType, byte[] parameters, ZWaveFunctionHandlePool pool);
+    public boolean execute(
+            ZWaveMessageTypes messageType,
+            byte[] parameters,
+            ZWaveFunctionHandlePool pool,
+            ZWaveMessage request
+    );
 
 }

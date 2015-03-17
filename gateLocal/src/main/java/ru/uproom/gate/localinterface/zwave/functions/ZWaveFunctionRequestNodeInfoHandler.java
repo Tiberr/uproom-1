@@ -2,6 +2,7 @@ package ru.uproom.gate.localinterface.zwave.functions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.uproom.gate.localinterface.zwave.driver.ZWaveMessage;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
 
@@ -19,7 +20,7 @@ public class ZWaveFunctionRequestNodeInfoHandler implements ZWaveFunctionHandler
 
 
     @Override
-    public boolean execute(ZWaveMessageTypes messageType, byte[] parameters, ZWaveFunctionHandlePool pool) {
+    public boolean execute(ZWaveMessageTypes messageType, byte[] parameters, ZWaveFunctionHandlePool pool, ZWaveMessage request) {
 
         String result = "request successful";
         if (parameters[0] == 0) result = "request failed";

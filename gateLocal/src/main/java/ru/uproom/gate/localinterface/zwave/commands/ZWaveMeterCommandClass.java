@@ -61,8 +61,8 @@ public class ZWaveMeterCommandClass extends ZWaveCommandClassImpl {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceState(ZWaveDevice device) {
-        super.requestDeviceState(device);
+    public void requestDeviceState(ZWaveDevice device, byte instance) {
+        super.requestDeviceState(device, instance);
 
         if (getVersion() > 1) {
             ZWaveMessage message = new ZWaveMessage(
@@ -85,8 +85,8 @@ public class ZWaveMeterCommandClass extends ZWaveCommandClassImpl {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceParameter(ZWaveDevice device) {
-        super.requestDeviceParameter(device);
+    public void requestDeviceParameter(ZWaveDevice device, byte instance) {
+        super.requestDeviceParameter(device, instance);
 
         for (int i = 0; i < 8; ++i) {
 
@@ -125,6 +125,27 @@ public class ZWaveMeterCommandClass extends ZWaveCommandClassImpl {
                 break;
             default:
         }
+    }
+
+
+    private void setResetDeviceParameter(ZWaveDeviceParameter parameter, String value) {
+        if (!value.equalsIgnoreCase("true")) return;
+
+        ZWaveMessage message = new ZWaveMessage(
+                ZWaveMessageTypes.Request,
+                ZWaveFunctionID.SEND_DATA,
+                false
+        );
+        byte[] data = new byte[6];
+        message.applyInstance(parameter);
+        data[0] = (byte) parameter.getDevice().getDeviceId();
+        data[1] = 0x02;
+        data[2] = getId();
+        data[3] = 0x05; // command RESET
+        data[5] = 0x00; // transmit options (?)
+        message.setParameters(data);
+
+        parameter.getDevice().getDevicePool().getDriver().getSerialDataHandler().addMessageToSendingQueue(message);
     }
 
 
@@ -203,6 +224,8 @@ public class ZWaveMeterCommandClass extends ZWaveCommandClassImpl {
 
     private void messageReportHandler(ZWaveDevice device, byte[] data) {
 
+        // todo: stop in this place
+
         boolean exporting;
         if (getVersion() > 0x01) {
             exporting = ((data[1] & 0x60) == 0x40);
@@ -280,27 +303,6 @@ public class ZWaveMeterCommandClass extends ZWaveCommandClassImpl {
         parameter.setPrevValue(extractingValue.getValue());
         parameter.setPrevPrecision(extractingValue.getPrecision());
 
-    }
-
-
-    //-----------------------------------------------------------------------------------------------------------
-
-    private void setResetDeviceParameter(ZWaveDeviceParameter parameter, String value) {
-        if (!value.equalsIgnoreCase("true")) return;
-
-        ZWaveMessage message = new ZWaveMessage(
-                ZWaveMessageTypes.Request,
-                ZWaveFunctionID.SEND_DATA,
-                false
-        );
-        byte[] data = new byte[6];
-        data[0] = (byte) parameter.getDevice().getDeviceId();
-        data[1] = 0x02;
-        data[2] = getId();
-        data[3] = 0x05; // command RESET
-        data[5] = 0x00; // transmit options (?)
-
-        parameter.getDevice().getDevicePool().getDriver().getSerialDataHandler().addMessageToSendingQueue(message);
     }
 
 }

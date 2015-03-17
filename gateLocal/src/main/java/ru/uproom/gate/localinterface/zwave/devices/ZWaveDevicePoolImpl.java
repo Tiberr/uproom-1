@@ -63,6 +63,9 @@ public class ZWaveDevicePoolImpl implements ZWaveDevicePool {
 
     private void requestNodesInfo() {
         for (Map.Entry<Integer, ZWaveDevice> entry : devices.entrySet()) {
+
+            // todo: add to this point Node::AdvancedQueries
+
             ZWaveMessage message = new ZWaveMessage(
                     ZWaveMessageTypes.Request, ZWaveFunctionID.REQUEST_NODE_INFO, true);
             message.setParameters(new byte[]{(byte) entry.getValue().getDeviceId()});

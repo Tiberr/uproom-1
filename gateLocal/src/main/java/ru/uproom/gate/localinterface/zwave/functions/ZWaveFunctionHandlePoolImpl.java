@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.uproom.gate.localinterface.zwave.devices.ZWaveDevicePool;
 import ru.uproom.gate.localinterface.zwave.driver.ZWaveDriver;
+import ru.uproom.gate.localinterface.zwave.driver.ZWaveMessage;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
 import ru.uproom.gate.transport.domain.ClassesSearcher;
@@ -91,7 +92,7 @@ public class ZWaveFunctionHandlePoolImpl implements ZWaveFunctionHandlePool {
     //  executioner of commands from server
 
     @Override
-    public boolean execute(byte[] function) {
+    public boolean execute(ZWaveMessage request, byte[] function) {
         if (function.length <= 1) return false;
 
         ZWaveFunctionID functionID = ZWaveFunctionID.getByCode(function[1]);
@@ -106,7 +107,7 @@ public class ZWaveFunctionHandlePoolImpl implements ZWaveFunctionHandlePool {
         ZWaveMessageTypes type = ZWaveMessageTypes.getByCode(function[0]);
         byte[] parameters = new byte[function.length - 2];
         System.arraycopy(function, 2, parameters, 0, parameters.length);
-        handler.execute(type, parameters, this);
+        handler.execute(type, parameters, this, request);
 
         return true;
     }

@@ -186,7 +186,7 @@ public class ZWaveDeviceParameter {
     // initiate get value request from device
 
     public void fetchValue(ZWaveDeviceParameterListener listener) {
-        commandClass.requestDeviceParameter(device);
+        commandClass.requestDeviceParameter(device, zWaveName.getInstance());
         synchronized (listeners) {
             listeners.add(listener);
         }

@@ -202,11 +202,15 @@ public class ZWaveSerialDataHandlerImpl implements ZWaveSerialDataHandler {
                 waitForNotify(0);
 
                 byte[] function;
+                ZWaveMessage request;
                 while (receiveMessages.size() > 0) {
                     synchronized (receiveMessages) {
                         function = receiveMessages.remove(0);
                     }
-                    functionHandler.execute(function);
+                    synchronized (sendMessages) {
+                        request = sendMessages.get(0);
+                    }
+                    functionHandler.execute(request, function);
                 }
 
             }

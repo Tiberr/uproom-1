@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.localinterface.zwave.devices.ZWaveDevicePool;
 import ru.uproom.gate.localinterface.zwave.driver.ZWaveDriver;
+import ru.uproom.gate.localinterface.zwave.driver.ZWaveMessage;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveUpdateState;
@@ -21,8 +22,11 @@ public class ZWaveFunctionApplicationUpdateHandler implements ZWaveFunctionHandl
             LoggerFactory.getLogger(ZWaveFunctionApplicationUpdateHandler.class);
 
 
+    //-----------------------------------------------------------------------------------
+
     @Override
-    public boolean execute(ZWaveMessageTypes messageType, byte[] parameters, ZWaveFunctionHandlePool pool) {
+    public boolean execute(ZWaveMessageTypes messageType, byte[] parameters,
+                           ZWaveFunctionHandlePool pool, ZWaveMessage request) {
 
         byte nodeId = parameters[1];
         ZWaveDriver driver = pool.getDriver();
@@ -44,7 +48,8 @@ public class ZWaveFunctionApplicationUpdateHandler implements ZWaveFunctionHandl
 
             case NODE_INFO_REQ_FAILED:
                 // todo : resend request
-                driver.currentRequestReceived(ZWaveFunctionID.REQUEST_NODE_INFO);
+                if (request != null && request.getFunctionID() == ZWaveFunctionID.REQUEST_NODE_INFO)
+                    request.setHaveAnswer(true);
                 break;
 
             case NODE_INFO_REQ_DONE:
@@ -54,7 +59,8 @@ public class ZWaveFunctionApplicationUpdateHandler implements ZWaveFunctionHandl
                 byte[] info = new byte[parameters[2] - 3];
                 System.arraycopy(parameters, 6, info, 0, info.length);
                 devices.updateDeviceInfo(nodeId, info);
-                driver.currentRequestReceived(ZWaveFunctionID.REQUEST_NODE_INFO);
+                if (request != null && request.getFunctionID() == ZWaveFunctionID.REQUEST_NODE_INFO)
+                    request.setHaveAnswer(true);
                 break;
 
         }

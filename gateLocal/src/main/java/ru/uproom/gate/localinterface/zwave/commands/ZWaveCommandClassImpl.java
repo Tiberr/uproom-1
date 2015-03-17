@@ -2,10 +2,14 @@ package ru.uproom.gate.localinterface.zwave.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.uproom.gate.localinterface.domain.AppendingValue;
 import ru.uproom.gate.localinterface.domain.ExtractingValue;
 import ru.uproom.gate.localinterface.zwave.devices.ZWaveDevice;
 import ru.uproom.gate.localinterface.zwave.devices.ZWaveDeviceParameter;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClassNames;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * z-wave command class
@@ -28,8 +32,11 @@ public class ZWaveCommandClassImpl implements ZWaveCommandClass {
 
     private ZWaveCommandClassNames name;
     private byte version;
-
     private boolean haveVersion;
+    private boolean afterMark;
+    private byte instancesNumber = 0x01;
+
+    private Map<Byte, Byte> instancesEndPoints = new HashMap<>();
 
 
     //----------------------------------------------------------------------------------------------
@@ -75,16 +82,25 @@ public class ZWaveCommandClassImpl implements ZWaveCommandClass {
     @Override
     public void createInstance(ZWaveDevice device, byte instance) {
         createParameterList(device, instance);
-
-        // todo : stop here
-
     }
 
     @Override
     public void createInstances(ZWaveDevice device, byte instances) {
+        if (isAfterMark()) return;
+
         for (byte i = 1; i <= instances; ++i) {
             createInstance(device, i);
         }
+    }
+
+    @Override
+    public byte getInstanceEndPoint(byte instance) {
+        return instancesEndPoints.get(instance);
+    }
+
+    @Override
+    public void setInstanceEndPoint(byte instance, byte endPoint) {
+        instancesEndPoints.put(instance, endPoint);
     }
 
     @Override
@@ -97,11 +113,11 @@ public class ZWaveCommandClassImpl implements ZWaveCommandClass {
     }
 
     @Override
-    public void requestDeviceState(ZWaveDevice device) {
+    public void requestDeviceState(ZWaveDevice device, byte instance) {
     }
 
     @Override
-    public void requestDeviceParameter(ZWaveDevice device) {
+    public void requestDeviceParameter(ZWaveDevice device, byte instance) {
 
     }
 
@@ -110,8 +126,36 @@ public class ZWaveCommandClassImpl implements ZWaveCommandClass {
 
     }
 
+    @Override
+    public void requestStateForAllInstances(ZWaveDevice device) {
+        for (byte i = 1; i <= instancesNumber; i++) {
+            requestDeviceState(device, i);
+        }
+    }
+
+    @Override
+    public void applyValueBasic(ZWaveDevice device, byte instance, byte value) {
+
+    }
+
     protected boolean isHaveVersion() {
         return haveVersion;
+    }
+
+    protected boolean isAfterMark() {
+        return afterMark;
+    }
+
+    protected void setAfterMark(boolean afterMark) {
+        this.afterMark = afterMark;
+    }
+
+    protected byte getInstancesNumber() {
+        return instancesNumber;
+    }
+
+    protected void setInstancesNumber(byte instancesNumber) {
+        this.instancesNumber = instancesNumber;
     }
 
 
@@ -149,12 +193,66 @@ public class ZWaveCommandClassImpl implements ZWaveCommandClass {
         return new ExtractingValue(resultValue.toString(), scale, precision);
     }
 
+
     protected ExtractingValue extractValueFromBytes(byte[] bytes) {
         return extractValueFromBytes(bytes, (byte) 0x01);
     }
 
 
     //----------------------------------------------------------------------------------------------
+
+    protected byte[] appendValueToBytes(String value, byte scale) {
+        AppendingValue appendingValue = valueToInteger(value);
+
+        byte[] bytes = new byte[appendingValue.getSize()];
+        bytes[0] = (byte) ((appendingValue.getPrecision() << PRECISION_SHIFT) | (scale << SCALE_SHIFT)
+                | appendingValue.getSize());
+        int shift = (appendingValue.getSize() - 1) << 3;
+        for (int i = appendingValue.getSize(), j = 1; i > 0; --i, j++, shift -= 8) {
+            bytes[j] = (byte) (appendingValue.getValue() >> shift);
+        }
+
+        return bytes;
+    }
+
+
+    private AppendingValue valueToInteger(String value) {
+        int valueInt;
+        byte size = 4, precision = 0;
+
+        int pos = value.indexOf(".");
+        if (pos < 0)
+            pos = value.indexOf(",");
+
+        if (pos < 0)
+            valueInt = Integer.parseInt(value);
+        else {
+            precision = (byte) ((value.length() - pos) - 1);
+            valueInt = Integer.parseInt(value.substring(0, pos) + value.substring(pos + 1));
+        }
+
+        if (valueInt < 0) {
+            if ((valueInt & 0xffffff80) == 0xffffff80)
+                size = 1;
+            else if ((valueInt & 0xffff8000) == 0xffff8000)
+                size = 2;
+        } else {
+            if ((valueInt & 0xffffff00) == 0)
+                size = 1;
+            else if ((valueInt & 0xffff0000) == 0)
+                size = 2;
+        }
+
+        return new AppendingValue(valueInt, size, precision);
+    }
+
+
+    //----------------------------------------------------------------------------------------------
+
+    protected void updateMappedClass(ZWaveDevice device, byte instance, byte commandClassId, byte level) {
+        ZWaveCommandClass commandClass = device.getCommandClassById(commandClassId);
+        commandClass.applyValueBasic(device, instance, level);
+    }
 
 }
 

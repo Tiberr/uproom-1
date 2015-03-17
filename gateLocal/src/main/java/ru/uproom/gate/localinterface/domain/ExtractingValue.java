@@ -26,4 +26,5 @@ public class ExtractingValue {
     public byte getPrecision() {
         return precision;
     }
+
 }

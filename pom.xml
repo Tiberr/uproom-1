@@ -11,7 +11,7 @@
         <module>gateApi</module>
         <module>gate</module>
         <module>gateLocal</module>
-        <module>rkjamlib</module>
+        <module>tindenetlib</module>
     </modules>
     <build>
         <plugins>

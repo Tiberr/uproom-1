@@ -25,14 +25,22 @@ public interface ZWaveCommandClass {
 
     public void createInstances(ZWaveDevice device, byte instances);
 
+    public byte getInstanceEndPoint(byte instance);
+
+    public void setInstanceEndPoint(byte instance, byte endPoint);
+
     public void messageHandler(ZWaveDevice device, byte[] data);
 
     public void messageHandler(ZWaveDevice device, byte[] data, byte instance);
 
-    public void requestDeviceState(ZWaveDevice device);
+    public void requestDeviceState(ZWaveDevice device, byte instance);
 
-    public void requestDeviceParameter(ZWaveDevice device);
+    public void requestDeviceParameter(ZWaveDevice device, byte instance);
 
     public void setDeviceParameter(ZWaveDeviceParameter parameter, String value);
+
+    public void requestStateForAllInstances(ZWaveDevice device);
+
+    public void applyValueBasic(ZWaveDevice device, byte instance, byte value);
 
 }

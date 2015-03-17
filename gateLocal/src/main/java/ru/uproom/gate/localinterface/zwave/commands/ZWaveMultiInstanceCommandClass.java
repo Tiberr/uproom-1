@@ -82,16 +82,16 @@ public class ZWaveMultiInstanceCommandClass extends ZWaveCommandClassImpl {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceState(ZWaveDevice device) {
-        super.requestDeviceState(device);
+    public void requestDeviceState(ZWaveDevice device, byte instance) {
+        super.requestDeviceState(device, instance);
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceParameter(ZWaveDevice device) {
-        super.requestDeviceParameter(device);
+    public void requestDeviceParameter(ZWaveDevice device, byte instance) {
+        super.requestDeviceParameter(device, instance);
 
         ZWaveMessage message = new ZWaveMessage(
                 ZWaveMessageTypes.Request,

@@ -2,6 +2,7 @@ package ru.uproom.gate.localinterface.zwave.functions;
 
 import ru.uproom.gate.localinterface.zwave.devices.ZWaveDevicePool;
 import ru.uproom.gate.localinterface.zwave.driver.ZWaveDriver;
+import ru.uproom.gate.localinterface.zwave.driver.ZWaveMessage;
 
 /**
  * Marker interface for command commands pool
@@ -16,6 +17,6 @@ public interface ZWaveFunctionHandlePool {
 
     public ZWaveDevicePool getDevicePool();
 
-    public boolean execute(byte[] function);
+    public boolean execute(ZWaveMessage request, byte[] function);
 
 }

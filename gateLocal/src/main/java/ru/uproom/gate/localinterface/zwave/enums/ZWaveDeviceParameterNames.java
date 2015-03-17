@@ -18,15 +18,15 @@ public enum ZWaveDeviceParameterNames {
 
     // SwitchMultilevel
     Level(ZWaveCommandClassNames.SwitchMultilevel, 0x01, 0x00, 0x00),
-    Bright(ZWaveCommandClassNames.SwitchMultilevel, 0x01, 0x00, 0x01),
-    Dim(ZWaveCommandClassNames.SwitchMultilevel, 0x01, 0x00, 0x02),
-    IgnoreStartLevel(ZWaveCommandClassNames.SwitchMultilevel, 0x01, 0x00, 0x03),
-    StartLevel(ZWaveCommandClassNames.SwitchMultilevel, 0x01, 0x00, 0x04),
     LevelWhite(ZWaveCommandClassNames.SwitchMultilevel, 0x02, 0x00, 0x00),
     LevelRed(ZWaveCommandClassNames.SwitchMultilevel, 0x03, 0x00, 0x00),
     LevelGreen(ZWaveCommandClassNames.SwitchMultilevel, 0x04, 0x00, 0x00),
     LevelBlue(ZWaveCommandClassNames.SwitchMultilevel, 0x05, 0x00, 0x00),
     Level5(ZWaveCommandClassNames.SwitchMultilevel, 0x06, 0x00, 0x00),
+    Bright(ZWaveCommandClassNames.SwitchMultilevel, 0x01, 0x00, 0x01),
+    Dim(ZWaveCommandClassNames.SwitchMultilevel, 0x01, 0x00, 0x02),
+    IgnoreStartLevel(ZWaveCommandClassNames.SwitchMultilevel, 0x01, 0x00, 0x03),
+    StartLevel(ZWaveCommandClassNames.SwitchMultilevel, 0x01, 0x00, 0x04),
 
     // SwitchAll
     SwitchAll(ZWaveCommandClassNames.SwitchAll, 0x01, 0x00, 0x00),

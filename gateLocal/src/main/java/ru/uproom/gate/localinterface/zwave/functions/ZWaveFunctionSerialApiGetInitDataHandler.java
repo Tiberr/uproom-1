@@ -3,6 +3,7 @@ package ru.uproom.gate.localinterface.zwave.functions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.localinterface.zwave.driver.ZWaveDriver;
+import ru.uproom.gate.localinterface.zwave.driver.ZWaveMessage;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveExtraEnums;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
 import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
@@ -20,7 +21,7 @@ public class ZWaveFunctionSerialApiGetInitDataHandler implements ZWaveFunctionHa
 
 
     @Override
-    public boolean execute(ZWaveMessageTypes messageType, byte[] parameters, ZWaveFunctionHandlePool pool) {
+    public boolean execute(ZWaveMessageTypes messageType, byte[] parameters, ZWaveFunctionHandlePool pool, ZWaveMessage request) {
 
         ZWaveDriver driver = pool.getDriver();
 

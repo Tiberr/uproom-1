@@ -2,13 +2,12 @@ package ru.uproom.gate.localinterface.zwave.devices;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.uproom.gate.localinterface.domain.WorkingHelper;
 import ru.uproom.gate.localinterface.zwave.commands.ZWaveCommandClass;
 import ru.uproom.gate.localinterface.zwave.commands.ZWaveMultiInstanceCommandClass;
 import ru.uproom.gate.localinterface.zwave.commands.ZWaveVersionCommandClass;
-import ru.uproom.gate.localinterface.zwave.enums.ZWaveCommandClassNames;
-import ru.uproom.gate.localinterface.zwave.enums.ZWaveDeviceParameterNames;
-import ru.uproom.gate.localinterface.zwave.enums.ZWaveExtraEnums;
+import ru.uproom.gate.localinterface.zwave.driver.ZWaveMessage;
+import ru.uproom.gate.localinterface.zwave.enums.*;
+import ru.uproom.gate.transport.domain.LoggingHelper;
 import ru.uproom.gate.transport.dto.DeviceDTO;
 import ru.uproom.gate.transport.dto.parameters.DeviceParametersNames;
 
@@ -43,6 +42,8 @@ public class ZWaveDevice {
     public ZWaveDevice(int deviceId, ZWaveDevicePool pool) {
         this.deviceId = deviceId;
         this.devicePool = pool;
+
+        requestNodeProtocolInfo();
     }
 
 
@@ -61,6 +62,27 @@ public class ZWaveDevice {
 
     //##############################################################################################################
     //######    method
+
+
+    //-----------------------------------------------------------------------------------
+
+    private void requestNodeProtocolInfo() {
+
+        ZWaveMessage message = new ZWaveMessage(
+                ZWaveMessageTypes.Request,
+                ZWaveFunctionID.GET_NODE_PROTOCOL_INFO,
+                true
+        );
+        byte[] data = new byte[1];
+        data[0] = (byte) deviceId;
+        message.setParameters(data);
+
+    }
+
+
+    public void updateNodeProtocolInfo(byte[] info) {
+
+    }
 
 
     //-----------------------------------------------------------------------------------
@@ -119,7 +141,7 @@ public class ZWaveDevice {
         if (commandClass == null) return;
 
         commandClass.setVersion(version);
-        commandClass.requestDeviceState(this);
+        commandClass.requestDeviceState(this, (byte) 0x01);
     }
 
 
@@ -146,6 +168,18 @@ public class ZWaveDevice {
         if (commandClass == null) return;
 
         commandClass.createInstances(this, instances);
+    }
+
+
+    //-----------------------------------------------------------------------------------
+
+    public ZWaveCommandClass getCommandClassById(byte commandClassId) {
+        return getCommandClassByName(ZWaveCommandClassNames.getByCode(commandClassId));
+    }
+
+
+    public ZWaveCommandClass getCommandClassByName(ZWaveCommandClassNames commandClassName) {
+        return commandClasses.get(commandClassName);
     }
 
 
@@ -190,7 +224,7 @@ public class ZWaveDevice {
 
         LOG.debug("RECEIVE PARAMETER : class ({}) parameters ({} )", new Object[]{
                 commandClassId.name(),
-                WorkingHelper.createHexStringFromByteArray(parameters)
+                LoggingHelper.createHexStringFromByteArray(parameters)
         });
     }
 

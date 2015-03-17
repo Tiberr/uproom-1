@@ -1,9 +1,9 @@
-package ru.uproom.gate.rkjamlib;
+package ru.uproom.gate.tindenetlib;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import ru.uproom.gate.rkjamlib.driver.RkJamSerialPort;
+import ru.uproom.gate.tindenetlib.driver.TindenetSerialPort;
 
 /**
  * Created by osipenko on 18.02.15.
@@ -31,7 +31,7 @@ public class Main {
                 new ClassPathXmlApplicationContext("applicationContext.xml");
         LOG.info(">>>>\tGate Local started. ");
 
-        RkJamSerialPort serialPort = (RkJamSerialPort) ctx.getBean("rkJamSerialPortImpl");
+        TindenetSerialPort serialPort = (TindenetSerialPort) ctx.getBean("tindenetSerialPortImpl");
         if (serialPort != null) serialPort.open();
         else LOG.error("Spring not found bean");
 
