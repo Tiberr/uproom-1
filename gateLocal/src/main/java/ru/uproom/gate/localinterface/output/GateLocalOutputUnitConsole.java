@@ -2,11 +2,6 @@ package ru.uproom.gate.localinterface.output;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.uproom.gate.localinterface.zwave.devices.ZWaveDevicePool;
-import ru.uproom.gate.localinterface.zwave.driver.ZWaveMessage;
-import ru.uproom.gate.localinterface.zwave.driver.ZWaveSerialDataHandler;
-import ru.uproom.gate.localinterface.zwave.enums.ZWaveFunctionID;
-import ru.uproom.gate.localinterface.zwave.enums.ZWaveMessageTypes;
 import ru.uproom.gate.transport.command.CommandType;
 import ru.uproom.gate.transport.command.ExitCommand;
 import ru.uproom.gate.transport.command.GetDeviceListCommand;
@@ -14,6 +9,11 @@ import ru.uproom.gate.transport.command.SetDeviceParameterCommand;
 import ru.uproom.gate.transport.dto.DeviceDTO;
 import ru.uproom.gate.transport.dto.DeviceType;
 import ru.uproom.gate.transport.dto.parameters.DeviceParametersNames;
+import ru.uproom.libraries.zwave.devices.RkZWaveDevicePool;
+import ru.uproom.libraries.zwave.driver.RkZWaveDriver;
+import ru.uproom.libraries.zwave.driver.RkZWaveMessage;
+import ru.uproom.libraries.zwave.enums.RkZWaveFunctionID;
+import ru.uproom.libraries.zwave.enums.RkZWaveMessageTypes;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -44,8 +44,8 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
 
     private GateLocalOutput parent;
 
-    private ZWaveSerialDataHandler serialDataHandler;
-    private ZWaveDevicePool devices;
+    private RkZWaveDriver serialDataHandler;
+    private RkZWaveDevicePool devices;
     private boolean switchState;
 
 
@@ -119,7 +119,7 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
 
 
     //------------------------------------------------------------------------
-    //  stop program
+    //  close program
 
     public void setDeviceParameter(String[] command) {
 
@@ -139,7 +139,7 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
 
 
     //------------------------------------------------------------------------
-    //  stop program
+    //  close program
 
     public void commandFromConsole(String command) {
         if (command.isEmpty()) return;
@@ -162,7 +162,7 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
                 break;
             case Exit:
                 parent.setCommandFromUnit(new ExitCommand());
-                serialDataHandler.stop(false);
+                serialDataHandler.destroy();
                 break;
             // toggle parameter Switch at node 0x06
             case SetDeviceParameter:
@@ -175,7 +175,7 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
             // work with serial port
             case Handshake:
                 serialDataHandler.addMessageToSendingQueue(
-                        new ZWaveMessage(ZWaveMessageTypes.Request, ZWaveFunctionID.GET_VERSION, false));
+                        new RkZWaveMessage(RkZWaveMessageTypes.Request, RkZWaveFunctionID.GET_VERSION, false));
                 break;
 
             default:

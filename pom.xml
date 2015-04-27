@@ -9,9 +9,10 @@
     <modules>
         <module>server</module>
         <module>gateApi</module>
-        <module>gate</module>
+        <module>rk-gate</module>
         <module>gateLocal</module>
-        <module>tindenetlib</module>
+        <module>rk-lib-tindenet</module>
+        <module>rk-lib-zwave</module>
     </modules>
     <build>
         <plugins>

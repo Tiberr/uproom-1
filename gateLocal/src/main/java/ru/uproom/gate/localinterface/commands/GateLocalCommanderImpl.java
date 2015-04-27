@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.uproom.gate.localinterface.output.GateLocalOutput;
 import ru.uproom.gate.transport.command.Command;
 import ru.uproom.gate.transport.command.CommandType;
-import ru.uproom.gate.transport.domain.ClassesSearcher;
+import ru.uproom.libraries.auxilliary.ClassesSearcher;
 
 import javax.annotation.PostConstruct;
 import java.util.EnumMap;

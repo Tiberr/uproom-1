@@ -1,9 +1,9 @@
 package ru.uproom.gate.localinterface.output;
 
-import ru.uproom.gate.localinterface.zwave.devices.ZWaveDevicePool;
-import ru.uproom.gate.localinterface.zwave.driver.ZWaveSerialDataHandler;
 import ru.uproom.gate.transport.command.Command;
 import ru.uproom.gate.transport.dto.DeviceDTO;
+import ru.uproom.libraries.zwave.devices.RkZWaveDevicePool;
+import ru.uproom.libraries.zwave.driver.RkZWaveDriver;
 
 import java.util.List;
 
@@ -16,8 +16,8 @@ public interface GateLocalOutput {
 
     public void setCommandFromUnit(Command command);
 
-    public ZWaveSerialDataHandler getDataHandler();
+    public RkZWaveDriver getDataHandler();
 
-    public ZWaveDevicePool getDevicePool();
+    public RkZWaveDevicePool getDevicePool();
 
 }
