@@ -1,5 +1,6 @@
 package ru.uproom.gate.localinterface.commands;
 
+import libraries.auxilliary.ClassesSearcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,7 +8,6 @@ import org.springframework.stereotype.Service;
 import ru.uproom.gate.localinterface.output.GateLocalOutput;
 import ru.uproom.gate.transport.command.Command;
 import ru.uproom.gate.transport.command.CommandType;
-import ru.uproom.libraries.auxilliary.ClassesSearcher;
 
 import javax.annotation.PostConstruct;
 import java.util.EnumMap;

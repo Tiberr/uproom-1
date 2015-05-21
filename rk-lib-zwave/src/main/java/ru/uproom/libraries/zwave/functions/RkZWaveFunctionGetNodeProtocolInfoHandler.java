@@ -23,6 +23,12 @@ public class RkZWaveFunctionGetNodeProtocolInfoHandler implements RkZWaveFunctio
     public boolean execute(RkZWaveMessageTypes messageType, int[] parameters,
                            RkZWaveFunctionHandlePool pool, RkZWaveMessage request) {
 
+        //todo : create device.updateProtocolInfo
+
+        if (request != null && request.getFunctionID() == RkZWaveFunctionID.GET_NODE_PROTOCOL_INFO) {
+            request.setHaveAnswer(true);
+        }
+
         LOG.debug("execute function : {}",
                 getClass().getAnnotation(RkZWaveFunctionHandlerAnnotation.class).value().name());
 

@@ -1,5 +1,10 @@
 package ru.uproom.gate.tindenetlib;
 
+import libraries.api.RkLibraryDriver;
+import libraries.api.RkLibraryEvent;
+import libraries.api.RkLibraryEventListener;
+import libraries.api.RkLibraryManager;
+import libraries.auxilliary.RunnableClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -8,10 +13,6 @@ import ru.uproom.gate.tindenetlib.commands.server.TindenetServerCommandHandlersF
 import ru.uproom.gate.tindenetlib.driver.TindenetSerialPort;
 import ru.uproom.gate.transport.command.Command;
 import ru.uproom.gate.transport.dto.DeviceDTO;
-import ru.uproom.libraries.RkLibraryEventListener;
-import ru.uproom.libraries.RkLibraryManager;
-import ru.uproom.libraries.auxilliary.RunnableClass;
-import ru.uproom.libraries.events.RkLibraryEvent;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -20,7 +21,7 @@ import java.util.List;
 /**
  * Created by osipenko on 19.03.15.
  */
-public class TindenetManager implements RkLibraryManager {
+public class TindenetManager implements RkLibraryDriver {
 
 
     //##############################################################################################################
@@ -139,28 +140,38 @@ public class TindenetManager implements RkLibraryManager {
 
     }
 
-    @Override
-    public void addEventListener(RkLibraryEventListener listener) {
+    public void addLibraryManager(RkLibraryEventListener listener) {
 
     }
 
-    @Override
     public void removeEventListener(RkLibraryEventListener listener) {
 
     }
 
-    @Override
     public void requestDeviceParameters(DeviceDTO device) {
 
     }
 
-    @Override
     public void applyDeviceParameters(DeviceDTO device) {
 
     }
 
+    @Override
+    public void setLibraryManager(RkLibraryManager libraryManager) {
 
-    //##############################################################################################################
+    }
+
+    @Override
+    public void requestDeviceList() {
+
+    }
+
+    @Override
+    public void applyDeviceParameters() {
+
+    }
+
+//##############################################################################################################
     //######    inner classes
 
 

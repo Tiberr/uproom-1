@@ -1,4 +1,4 @@
-package ru.uproom.libraries.events;
+package libraries.api;
 
 /**
  * Created by osipenko on 06.04.15.
@@ -6,8 +6,9 @@ package ru.uproom.libraries.events;
 public enum RkLibraryEventType {
 
     None,
-    HubConnected,
-    HubNotConnected,
+    HubEnabled,
+    HubDisabled,
+    DeviceListPrepared,
     DeviceInfo,
     DeviceParameter
 

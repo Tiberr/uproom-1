@@ -1,10 +1,10 @@
 package ru.uproom.gate.devices.zwave;
 
+import libraries.auxilliary.RunnableClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zwave4j.Manager;
 import org.zwave4j.ValueId;
-import ru.uproom.libraries.auxilliary.RunnableClass;
 
 import java.util.concurrent.atomic.AtomicReference;
 

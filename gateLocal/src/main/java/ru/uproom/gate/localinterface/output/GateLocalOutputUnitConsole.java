@@ -119,7 +119,7 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
 
 
     //------------------------------------------------------------------------
-    //  close program
+    //  destroy program
 
     public void setDeviceParameter(String[] command) {
 
@@ -139,7 +139,7 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
 
 
     //------------------------------------------------------------------------
-    //  close program
+    //  destroy program
 
     public void commandFromConsole(String command) {
         if (command.isEmpty()) return;
@@ -169,13 +169,13 @@ public class GateLocalOutputUnitConsole implements GateLocalOutputUnit {
                 switchState = switchState ? false : true;
                 DeviceDTO dto = new DeviceDTO(0x00, 0x06, DeviceType.BinarySwitch);
                 dto.getParameters().put(DeviceParametersNames.Switch, switchState);
-                devices.applyDeviceParametersFromDto(dto);
+                //devices.applyDeviceParametersFromDto(dto);
                 //setDeviceParameter(cmdArray);
                 break;
             // work with serial port
             case Handshake:
                 serialDataHandler.addMessageToSendingQueue(
-                        new RkZWaveMessage(RkZWaveMessageTypes.Request, RkZWaveFunctionID.GET_VERSION, false));
+                        new RkZWaveMessage(RkZWaveMessageTypes.Request, RkZWaveFunctionID.GET_VERSION, null, false));
                 break;
 
             default:

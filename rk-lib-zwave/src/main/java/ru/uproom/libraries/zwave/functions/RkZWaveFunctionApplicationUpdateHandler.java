@@ -30,7 +30,7 @@ public class RkZWaveFunctionApplicationUpdateHandler implements RkZWaveFunctionH
 
         int nodeId = parameters[1];
         RkZWaveDriver driver = pool.getDriver();
-        RkZWaveDevicePool devices = pool.getDevicePool();
+        RkZWaveDevicePool devicePool = pool.getDevicePool();
         RkZWaveUpdateState state = RkZWaveUpdateState.getByCode(parameters[0]);
 
         switch (state) {
@@ -40,16 +40,20 @@ public class RkZWaveFunctionApplicationUpdateHandler implements RkZWaveFunctionH
                 break;
 
             case DELETE_DONE:
-                devices.removeExistingDevice(nodeId);
+                devicePool.removeExistingDevice(nodeId);
                 break;
 
             case ROUTING_PENDING:
                 break;
 
             case NODE_INFO_REQ_FAILED:
-                // todo : resend request
-                if (request != null && request.getFunctionID() == RkZWaveFunctionID.REQUEST_NODE_INFO)
-                    request.setHaveAnswer(true);
+                if (request != null) {
+                    if (request.getFunctionID() == RkZWaveFunctionID.REQUEST_NODE_INFO) {
+                        request.setHaveAnswer(true);
+                        request.setMustSendAgain(true);
+                        LOG.debug("request will send again");
+                    }
+                }
                 break;
 
             case NODE_INFO_REQ_DONE:
@@ -58,7 +62,7 @@ public class RkZWaveFunctionApplicationUpdateHandler implements RkZWaveFunctionH
             case NODE_INFO_RECEIVED:
                 int[] info = new int[parameters[2] - 3];
                 System.arraycopy(parameters, 6, info, 0, info.length);
-                devices.updateDeviceInfo(nodeId, info);
+                devicePool.updateDeviceInfo(nodeId, info);
                 if (request != null && request.getFunctionID() == RkZWaveFunctionID.REQUEST_NODE_INFO)
                     request.setHaveAnswer(true);
                 break;

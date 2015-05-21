@@ -1,5 +1,6 @@
 package ru.uproom.gate.transport;
 
+import libraries.auxilliary.RunnableClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import ru.uproom.gate.commands.GateCommander;
 import ru.uproom.gate.transport.command.Command;
 import ru.uproom.gate.transport.command.CommandType;
 import ru.uproom.gate.transport.command.HandshakeCommand;
-import ru.uproom.libraries.auxilliary.RunnableClass;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;

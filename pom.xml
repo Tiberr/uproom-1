@@ -13,6 +13,7 @@
         <module>gateLocal</module>
         <module>rk-lib-tindenet</module>
         <module>rk-lib-zwave</module>
+        <module>rk-lib-api</module>
     </modules>
     <build>
         <plugins>

@@ -117,7 +117,7 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                false
+                null, false
         );
         int[] params = new int[5];
         params[0] = device.getDeviceId();
@@ -154,7 +154,7 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                false
+                null, false
         );
         int[] params = new int[6];
         params[0] = parameter.getDevice().getDeviceId();
@@ -176,7 +176,7 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                true
+                null, true
         );
 
         // multi instance
@@ -254,7 +254,7 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
             RkZWaveMessage message = new RkZWaveMessage(
                     RkZWaveMessageTypes.Request,
                     RkZWaveFunctionID.SEND_DATA,
-                    true
+                    null, true
             );
             int[] params = new int[6];
             params[0] = (byte) device.getDeviceId();
@@ -385,7 +385,7 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
                 RkZWaveMessage message = new RkZWaveMessage(
                         RkZWaveMessageTypes.Request,
                         RkZWaveFunctionID.SEND_DATA,
-                        true
+                        null, true
                 );
                 int[] params = new int[6];
                 params[0] = device.getDeviceId();
@@ -413,7 +413,7 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
                         RkZWaveMessage message = new RkZWaveMessage(
                                 RkZWaveMessageTypes.Request,
                                 RkZWaveFunctionID.SEND_DATA,
-                                true
+                                null, true
                         );
                         int[] params = new int[7];
                         params[0] = device.getDeviceId();

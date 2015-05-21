@@ -116,7 +116,7 @@ public class RkZWaveVersionCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                false
+                null, false
         );
         int[] data = new int[5];
         data[0] = device.getDeviceId();
@@ -146,7 +146,7 @@ public class RkZWaveVersionCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                true
+                null, true
         );
         int[] data = new int[6];
         data[0] = device.getDeviceId();

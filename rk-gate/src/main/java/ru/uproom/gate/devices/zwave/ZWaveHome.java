@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import org.zwave4j.*;
 import ru.uproom.gate.devices.GateDevicesSet;
 import ru.uproom.gate.transport.ServerTransport;
@@ -27,7 +26,7 @@ import java.util.Map;
  * <p/>
  * Created by osipenko on 10.08.14.
  */
-@Service
+//@Service
 public class ZWaveHome implements GateDevicesSet {
 
 

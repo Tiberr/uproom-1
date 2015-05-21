@@ -45,6 +45,7 @@ public class RkZWaveFunctionSerialApiGetCapabilitiesHandler implements RkZWaveFu
         LOG.debug("execute function : {}", functionID.name());
 
         driver.currentRequestReceived(functionID);
+
         return false;
     }
 

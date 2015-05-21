@@ -1,5 +1,6 @@
 package ru.uproom.libraries.zwave.devices;
 
+import libraries.api.RkLibraryDeviceParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.transport.dto.parameters.DeviceParametersNames;
@@ -7,15 +8,12 @@ import ru.uproom.libraries.zwave.commands.RkZWaveCommandClass;
 import ru.uproom.libraries.zwave.enums.RkZWaveDeviceParameterNames;
 import ru.uproom.libraries.zwave.enums.RkZWaveMeterUnits;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Base class for Z-Wave Node Value
  * <p/>
  * Created by osipenko on 15.01.15.
  */
-public class RkZWaveDeviceParameter {
+public class RkZWaveDeviceParameter implements RkLibraryDeviceParameter {
 
 
     //##############################################################################################################
@@ -23,7 +21,6 @@ public class RkZWaveDeviceParameter {
 
 
     private static final Logger LOG = LoggerFactory.getLogger(RkZWaveDeviceParameter.class);
-    private final List<RkZWaveDeviceParameterListener> listeners = new ArrayList<>();
     private RkZWaveDevice device;
     private RkZWaveCommandClass commandClass;
     private RkZWaveDeviceParameterNames zWaveName;
@@ -102,15 +99,6 @@ public class RkZWaveDeviceParameter {
                 value
         });
 
-        while (listeners.size() > 0) {
-            RkZWaveDeviceParameterListener listener = null;
-            synchronized (listeners) {
-                listener = listeners.remove(0);
-            }
-            if (listener == null) continue;
-            listener.onChange();
-        }
-
     }
 
 
@@ -176,11 +164,8 @@ public class RkZWaveDeviceParameter {
     //-------------------------------------------------------------------------------------
     // initiate get value request from device
 
-    public void fetchValue(RkZWaveDeviceParameterListener listener) {
+    public void requestValue(RkZWaveDeviceParameterListener listener) {
         commandClass.requestDeviceParameter(device, zWaveName.getInstance());
-        synchronized (listeners) {
-            listeners.add(listener);
-        }
     }
 
 

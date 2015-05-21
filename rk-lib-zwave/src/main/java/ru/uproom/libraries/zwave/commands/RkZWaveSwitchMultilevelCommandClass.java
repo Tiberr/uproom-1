@@ -33,7 +33,7 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
             RkZWaveMessage message = new RkZWaveMessage(
                     RkZWaveMessageTypes.Request,
                     RkZWaveFunctionID.SEND_DATA,
-                    false
+                    null, false
             );
             int[] data = new int[5];
             data[0] = device.getDeviceId();
@@ -250,7 +250,7 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                false
+                null, false
         );
         message.applyInstance(device, this, instance);
         int[] data = new int[5];
@@ -319,7 +319,7 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                false
+                null, false
         );
         message.applyInstance(parameter.getDevice(), this, parameter.getZWaveName().getInstance());
         int[] data = new int[(duration != null) ? 7 : 6];
@@ -427,7 +427,7 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                false
+                null, false
         );
         message.applyInstance(device, this, parameter.getZWaveName().getInstance());
         int[] data = new int[2 + length];
@@ -453,7 +453,7 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                false
+                null, false
         );
         message.applyInstance(device, this, parameter.getZWaveName().getInstance());
         int[] data = new int[5];

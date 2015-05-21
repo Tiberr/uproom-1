@@ -1,4 +1,4 @@
-package ru.uproom.libraries.auxilliary;
+package libraries.auxilliary;
 
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
@@ -19,14 +19,14 @@ public class ClassesSearcher {
     // logger
     private static final Logger LOG = LoggerFactory.getLogger(ClassesSearcher.class);
 
+    private static Reflections reflections = new Reflections(
+            new ConfigurationBuilder()
+                    .setUrls(ClasspathHelper.forJavaClassPath())
+    );
+
     public static List<Class> getAnnotatedClasses(Class<? extends Annotation> annotation) {
 
-        Reflections reflections = new Reflections(
-                new ConfigurationBuilder()
-                        .setUrls(ClasspathHelper.forJavaClassPath())
-        );
         Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(annotation);
-
         return new ArrayList<Class>(annotated);
     }
 

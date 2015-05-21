@@ -1,5 +1,6 @@
 package ru.uproom.gate.notifications.zwave;
 
+import libraries.auxilliary.ClassesSearcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import org.zwave4j.NotificationType;
 import org.zwave4j.NotificationWatcher;
 import ru.uproom.gate.devices.GateDevicesSet;
 import ru.uproom.gate.notifications.NotificationHandler;
-import ru.uproom.libraries.auxilliary.ClassesSearcher;
 
 import javax.annotation.PostConstruct;
 import java.util.EnumMap;

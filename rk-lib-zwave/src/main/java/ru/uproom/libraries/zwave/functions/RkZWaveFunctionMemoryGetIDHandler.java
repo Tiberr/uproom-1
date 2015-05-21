@@ -23,9 +23,9 @@ public class RkZWaveFunctionMemoryGetIDHandler implements RkZWaveFunctionHandler
     public boolean execute(RkZWaveMessageTypes messageType, int[] parameters,
                            RkZWaveFunctionHandlePool pool, RkZWaveMessage request) {
 
-        int homeId = ((int) parameters[0] << 24) | ((int) parameters[1] << 16) |
-                ((int) parameters[2] << 8) | (int) parameters[3];
-        pool.getDevicePool().setParameters(homeId, parameters[4]);
+        long homeId = (parameters[0] << 24) | (parameters[1] << 16) |
+                (parameters[2] << 8) | parameters[3];
+        pool.getDriver().getDevicePool().setParameters(homeId, parameters[4]);
 
         // todo : handle for command class ControllerReplication (?)
 

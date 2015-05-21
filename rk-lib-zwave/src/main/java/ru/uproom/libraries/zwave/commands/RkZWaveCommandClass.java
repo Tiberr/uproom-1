@@ -1,10 +1,10 @@
 package ru.uproom.libraries.zwave.commands;
 
+import libraries.auxilliary.AppendingValue;
+import libraries.auxilliary.Bitfield;
+import libraries.auxilliary.ExtractingValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.uproom.libraries.auxilliary.AppendingValue;
-import ru.uproom.libraries.auxilliary.Bitfield;
-import ru.uproom.libraries.auxilliary.ExtractingValue;
 import ru.uproom.libraries.zwave.devices.RkZWaveDevice;
 import ru.uproom.libraries.zwave.devices.RkZWaveDeviceParameter;
 import ru.uproom.libraries.zwave.enums.RkZWaveCommandClassNames;

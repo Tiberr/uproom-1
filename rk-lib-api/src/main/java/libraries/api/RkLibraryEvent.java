@@ -1,4 +1,4 @@
-package ru.uproom.libraries.events;
+package libraries.api;
 
 /**
  * Created by osipenko on 05.04.15.

@@ -1,4 +1,4 @@
-package ru.uproom.libraries.auxilliary;
+package libraries.auxilliary;
 
 /**
  * Created by osipenko on 25.03.15.

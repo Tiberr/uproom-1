@@ -1,10 +1,9 @@
 package ru.uproom.libraries.zwave.devices;
 
+import libraries.api.RkLibraryDevice;
+import libraries.auxilliary.LoggingHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.uproom.gate.transport.dto.DeviceDTO;
-import ru.uproom.gate.transport.dto.parameters.DeviceParametersNames;
-import ru.uproom.libraries.auxilliary.LoggingHelper;
 import ru.uproom.libraries.zwave.commands.RkZWaveCommandClass;
 import ru.uproom.libraries.zwave.commands.RkZWaveMultiInstanceCommandClass;
 import ru.uproom.libraries.zwave.commands.RkZWaveVersionCommandClass;
@@ -17,7 +16,7 @@ import java.util.Map;
 /**
  * Created by osipenko on 15.01.15.
  */
-public class RkZWaveDevice {
+public class RkZWaveDevice implements RkLibraryDevice {
 
 
     //##############################################################################################################
@@ -25,26 +24,27 @@ public class RkZWaveDevice {
 
 
     private static final Logger LOG = LoggerFactory.getLogger(RkZWaveDevice.class);
-    private final Map<RkZWaveCommandClassNames, RkZWaveCommandClass> commandClasses = new HashMap<>();
-    private final Map<DeviceParametersNames, RkZWaveDeviceParameterNames> serverParameterIds = new HashMap<>();
 
+    private final Map<RkZWaveCommandClassNames, RkZWaveCommandClass> commandClasses = new HashMap<>();
     private final Map<RkZWaveDeviceParameterNames, RkZWaveDeviceParameter> parameters = new HashMap<>();
 
     private int deviceId;
-    private int deviceServerId;
+    private RkZWaveDeviceType type = RkZWaveDeviceType.Unknown;
 
     private RkZWaveDevicePool devicePool;
+
+    private boolean failedId;
 
 
     //##############################################################################################################
     //######    constructors / destructors
 
 
-    public RkZWaveDevice(int deviceId, RkZWaveDevicePool pool) {
+    public RkZWaveDevice(int deviceId, RkZWaveDevicePool devicePool) {
         this.deviceId = deviceId;
-        this.devicePool = pool;
+        this.devicePool = devicePool;
 
-        requestNodeProtocolInfo();
+        requestDeviceProtocolInfo();
     }
 
 
@@ -56,35 +56,46 @@ public class RkZWaveDevice {
         return deviceId;
     }
 
-    public int getDeviceServerId() {
-        return deviceServerId;
-    }
+
+    //-----------------------------------------------------------------------------------
 
     public RkZWaveDevicePool getDevicePool() {
         return devicePool;
     }
 
+
+    //-----------------------------------------------------------------------------------
+
+    public boolean isFailedId() {
+        return failedId;
+    }
+
+    public void setFailedId(boolean failedId) {
+        this.failedId = failedId;
+    }
+
+
     //##############################################################################################################
     //######    method
 
 
-    //-----------------------------------------------------------------------------------
-
-    private void requestNodeProtocolInfo() {
+    private void requestDeviceProtocolInfo() {
 
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.GET_NODE_PROTOCOL_INFO,
-                true
+                null, true
         );
         int[] data = new int[1];
         data[0] = deviceId;
         message.setParameters(data);
-
+        devicePool.getDriver().addMessageToSendingQueue(message);
     }
 
 
-    public void updateNodeProtocolInfo(int[] info) {
+    //-----------------------------------------------------------------------------------
+
+    public void updateDeviceProtocolInfo(int[] info) {
 
     }
 
@@ -94,7 +105,7 @@ public class RkZWaveDevice {
     public void addCommandClass(int commandClassId) {
 
         RkZWaveCommandClass commandClass =
-                devicePool.getDriver().getCommandClassFactory().getCommandClass(commandClassId);
+                devicePool.getCommandClassFactory().getCommandClass(commandClassId);
         if (commandClass == null) {
             LOG.info("ADD COMMAND CLASS : {}, not implemented", new Object[]{
                     RkZWaveCommandClassNames.getByCode(commandClassId).name()
@@ -103,8 +114,6 @@ public class RkZWaveDevice {
         }
 
         commandClasses.put(RkZWaveCommandClassNames.getByCode(commandClassId), commandClass);
-        // todo : probably fill parameter list in requestCommandClassInstances. Check it.
-        commandClass.createParameterList(this, 0x01);
     }
 
 
@@ -195,9 +204,6 @@ public class RkZWaveDevice {
     public void addParameter(RkZWaveDeviceParameter parameter) {
 
         parameters.put(parameter.getZWaveName(), parameter);
-        DeviceParametersNames name = parameter.getServerName();
-        if (name != DeviceParametersNames.Unknown)
-            serverParameterIds.put(parameter.getServerName(), parameter.getZWaveName());
     }
 
 
@@ -205,28 +211,7 @@ public class RkZWaveDevice {
 
     public void removeParameter(RkZWaveDeviceParameterNames parameterName) {
 
-        RkZWaveDeviceParameter parameter = parameters.remove(parameterName);
-        if (parameter == null) return;
-        serverParameterIds.remove(parameter.getServerName());
-    }
-
-
-    //-----------------------------------------------------------------------------------
-
-    public void applyDeviceParametersFromDto(DeviceDTO dto) {
-
-        Object o = dto.getParameters().get(DeviceParametersNames.Switch);
-        if (o != null) {
-            LOG.debug("apply device ({}) parameter (Switch) value ({})", new Object[]{
-                    deviceId,
-                    o.toString()
-            });
-            RkZWaveDeviceParameter parameter = parameters.get(RkZWaveDeviceParameterNames.Switch);
-            if (parameter != null) {
-                parameter.applyValue(o.toString());
-            }
-        }
-
+        parameters.remove(parameterName);
     }
 
 
@@ -242,7 +227,7 @@ public class RkZWaveDevice {
 
         LOG.debug("RECEIVE PARAMETER : class ({}) parameters ({} )", new Object[]{
                 commandClassId.name(),
-                LoggingHelper.createHexStringFromIntArray(parameters)
+                LoggingHelper.createHexStringFromIntArray(parameters, true)
         });
     }
 

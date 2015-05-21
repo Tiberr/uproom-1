@@ -2,6 +2,7 @@ package ru.uproom.libraries.zwave.functions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.uproom.libraries.zwave.devices.RkZWaveDevice;
 import ru.uproom.libraries.zwave.driver.RkZWaveMessage;
 import ru.uproom.libraries.zwave.enums.RkZWaveFunctionID;
 import ru.uproom.libraries.zwave.enums.RkZWaveMessageTypes;
@@ -23,8 +24,27 @@ public class RkZWaveFunctionIsFailedNodeIDHandler implements RkZWaveFunctionHand
     public boolean execute(RkZWaveMessageTypes messageType, int[] parameters,
                            RkZWaveFunctionHandlePool pool, RkZWaveMessage request) {
 
-        LOG.debug("execute function : {}",
-                getClass().getAnnotation(RkZWaveFunctionHandlerAnnotation.class).value().name());
+        int deviceId = 0x00;
+        if (request != null) {
+            RkZWaveDevice device = request.getDevice();
+            if (device != null) deviceId = device.getDeviceId();
+            request.setHaveAnswer(true);
+        }
+
+        pool.getDevicePool().updateDeviceFailedId(deviceId, parameters[0] != 0x00);
+
+        String deviceState = "exist";
+        if (parameters[0] != 0x00) {
+            deviceState = "failed";
+        }
+
+        //todo : create checking link process based of this command
+
+        LOG.debug("execute function : {}, device ({}) state ({})", new Object[]{
+                getClass().getAnnotation(RkZWaveFunctionHandlerAnnotation.class).value().name(),
+                deviceId,
+                deviceState
+        });
 
         return false;
     }

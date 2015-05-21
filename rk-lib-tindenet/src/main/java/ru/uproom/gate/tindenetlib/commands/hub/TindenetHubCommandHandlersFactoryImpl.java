@@ -1,11 +1,11 @@
 package ru.uproom.gate.tindenetlib.commands.hub;
 
+import libraries.auxilliary.ClassesSearcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.uproom.gate.tindenetlib.devices.TindenetHub;
-import ru.uproom.libraries.auxilliary.ClassesSearcher;
 
 import javax.annotation.PostConstruct;
 import java.util.EnumMap;

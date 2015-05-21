@@ -32,8 +32,9 @@ public class RkZWaveFunctionGetControllerCapabilitiesHandler implements RkZWaveF
         RkZWaveFunctionID functionID = getClass().getAnnotation(RkZWaveFunctionHandlerAnnotation.class).value();
         LOG.debug("execute function : {}", functionID.name());
 
-        if (request != null && request.getFunctionID() == functionID)
-            request.setHaveAnswer(true);
+        if (request != null && request.getFunctionID() == functionID) {
+            driver.currentRequestReceived(functionID);
+        }
 
         // todo : replace all instances of currentRequestReceived
 

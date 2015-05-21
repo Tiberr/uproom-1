@@ -1,5 +1,6 @@
 package ru.uproom.gate.tindenetlib.driver;
 
+import libraries.auxilliary.RunnableClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.uproom.gate.tindenetlib.commands.hub.TindenetHubCommandHandlersFactory;
 import ru.uproom.gate.tindenetlib.commands.hub.TindenetHubCommandID;
-import ru.uproom.libraries.auxilliary.RunnableClass;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;

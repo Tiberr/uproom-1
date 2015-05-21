@@ -1,4 +1,4 @@
-package ru.uproom.libraries.auxilliary;
+package libraries.auxilliary;
 
 import java.util.ArrayList;
 import java.util.List;

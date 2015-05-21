@@ -19,6 +19,7 @@ public class RkZWaveMessage {
 
     private RkZWaveMessageTypes type;
     private RkZWaveFunctionID functionID;
+    private RkZWaveDevice device;
 
     private boolean multiInstance;
     private boolean multiChannel;
@@ -37,14 +38,18 @@ public class RkZWaveMessage {
     private boolean needWaitAnswer;
     private boolean haveAnswer;
 
+    private boolean mustSendAgain;
+
 
     //##############################################################################################################
     //######    constructors / destructors
 
 
-    public RkZWaveMessage(RkZWaveMessageTypes type, RkZWaveFunctionID functionID, boolean needWaitAnswer) {
+    public RkZWaveMessage(
+            RkZWaveMessageTypes type, RkZWaveFunctionID functionID, RkZWaveDevice device, boolean needWaitAnswer) {
         this.type = type;
         this.functionID = functionID;
+        this.device = device;
         this.needWaitAnswer = needWaitAnswer;
     }
 
@@ -56,6 +61,16 @@ public class RkZWaveMessage {
     public RkZWaveFunctionID getFunctionID() {
         return functionID;
     }
+
+
+    //------------------------------------------------------------------------
+
+    public RkZWaveDevice getDevice() {
+        return device;
+    }
+
+
+    //------------------------------------------------------------------------
 
     public boolean isSending() {
         return sending;
@@ -70,6 +85,9 @@ public class RkZWaveMessage {
         this.sending = sending;
     }
 
+
+    //------------------------------------------------------------------------
+
     public boolean isResend() {
         return resend;
     }
@@ -82,6 +100,9 @@ public class RkZWaveMessage {
         this.resend = resend;
     }
 
+
+    //------------------------------------------------------------------------
+
     public boolean isAcknowledge() {
         return acknowledge;
     }
@@ -90,9 +111,15 @@ public class RkZWaveMessage {
         this.acknowledge = acknowledge;
     }
 
+
+    //------------------------------------------------------------------------
+
     public void setParameters(int[] parameters) {
         this.parameters = parameters;
     }
+
+
+    //------------------------------------------------------------------------
 
     public boolean isNeedWaitAnswer() {
         return needWaitAnswer;
@@ -101,6 +128,9 @@ public class RkZWaveMessage {
     public void setNeedWaitAnswer(boolean needWaitAnswer) {
         this.needWaitAnswer = needWaitAnswer;
     }
+
+
+    //------------------------------------------------------------------------
 
     public boolean isHaveAnswer() {
         return haveAnswer;
@@ -111,11 +141,20 @@ public class RkZWaveMessage {
     }
 
 
+    //------------------------------------------------------------------------
+
+    public boolean isMustSendAgain() {
+        return mustSendAgain;
+    }
+
+    public void setMustSendAgain(boolean mustSendAgain) {
+        this.mustSendAgain = mustSendAgain;
+    }
+
+
     //##############################################################################################################
     //######    methods
 
-
-    //------------------------------------------------------------------------
 
     public int[] asIntArray() {
 
@@ -210,6 +249,18 @@ public class RkZWaveMessage {
 
     public boolean checkUpResendNumber(long number) {
         return resendNumber >= number;
+    }
+
+
+    //------------------------------------------------------------------------
+
+    public void reload() {
+
+        setSending(false);
+        setResend(false);
+        setAcknowledge(false);
+        resendNumber = 0;
+
     }
 
 }

@@ -1,9 +1,9 @@
 package ru.uproom.libraries.zwave.commands;
 
+import libraries.auxilliary.ExtractingValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.transport.dto.parameters.DeviceParametersNames;
-import ru.uproom.libraries.auxilliary.ExtractingValue;
 import ru.uproom.libraries.zwave.devices.RkZWaveDevice;
 import ru.uproom.libraries.zwave.devices.RkZWaveDeviceParameter;
 import ru.uproom.libraries.zwave.driver.RkZWaveMessage;
@@ -67,7 +67,7 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
             RkZWaveMessage message = new RkZWaveMessage(
                     RkZWaveMessageTypes.Request,
                     RkZWaveFunctionID.SEND_DATA,
-                    true
+                    null, true
             );
             message.applyInstance(device, this, instance);
             int[] data = new int[5];
@@ -95,7 +95,7 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
             RkZWaveMessage message = new RkZWaveMessage(
                     RkZWaveMessageTypes.Request,
                     RkZWaveFunctionID.SEND_DATA,
-                    false
+                    null, false
             );
             message.applyInstance(device, this, instance);
             int[] data = new int[6];
@@ -133,7 +133,7 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                false
+                null, false
         );
         int[] data = new int[6];
         message.applyInstance(parameter);
@@ -222,7 +222,7 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
 
     private void messageReportHandler(RkZWaveDevice device, int[] data) {
 
-        // todo: close in this place
+        // todo: destroy in this place
 
         boolean exporting;
         if (getVersion() > 0x01) {

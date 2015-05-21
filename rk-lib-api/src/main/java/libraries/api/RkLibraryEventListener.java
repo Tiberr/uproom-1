@@ -1,6 +1,4 @@
-package ru.uproom.libraries;
-
-import ru.uproom.libraries.events.RkLibraryEvent;
+package libraries.api;
 
 /**
  * This interface must be implemented all classes that receive messages

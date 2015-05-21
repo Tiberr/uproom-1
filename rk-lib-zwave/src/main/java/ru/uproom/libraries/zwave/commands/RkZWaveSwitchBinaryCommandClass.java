@@ -88,7 +88,7 @@ public class RkZWaveSwitchBinaryCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                false
+                null, false
         );
         message.applyInstance(device, this, instance);
         int[] data = new int[5];
@@ -126,7 +126,7 @@ public class RkZWaveSwitchBinaryCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                false
+                null, false
         );
         message.applyInstance(parameter.getDevice(), this, parameter.getZWaveName().getInstance());
         int[] data = new int[6];
