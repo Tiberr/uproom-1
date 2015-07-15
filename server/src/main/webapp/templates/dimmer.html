@@ -1,18 +1,51 @@
+<div class="lv-item" style="border-bottom: 1px solid #f0f0f0;">
+    <div class="row">
+
+        <div class="col-xs-3">
+            {{ name }}({{ zid }})
+        </div>
+
+        <div class="checkbox col-xs-1">
+            <input data-on-label="I" data-off-label="O" class="bootstrap-switch-mini"
+                   id="switch{{ id }}" data-id="switchCheck" type="checkbox" {{ state }}>
+
+            <i class="input-helper"></i>
+        </div>
+
+        <div style="padding: 8px;" class="col-xs-5">
+            <div data-id="level" id="slider{{ id }}" class="input-slider"  data-is-start="{{ value }}"></div>
+            <!-- id="theslider" -->
+        </div>
+
+        <div class="col-xs-2">
+            <span class="f-12" id="sliderValue{{ id }}">{{ value }}%</span>
+        </div>
+
+    </div>
+</div>
+
+
+<!--
+{{#if selectScene }}
+<td>
+    <input id="sceneSelect{{ id }}" data-id="sceneSelect" type="checkbox"/>
+</td>
+{{/if}}
 <td>
     <a href="#" id="devicename{{ id }}" data-id="deviceName" data-type="text">{{ name }}</a>
     <span>({{ zid }})</span>
 </td>
 <td>
     <div class="row-fluid">
-        <div class="block u-block span2">
+        <div class="block u-block span4">
             <input data-on-label="I" data-off-label="O" class="bootstrap-switch-mini"
                    id="switch{{ id }}" data-id="switchCheck" type="checkbox" {{ state }}>
         </div>
-
-        <div class="block u-block span9">
+        <div class="block u-block span8">
             <input id="slider{{ id }}" data-id="level" data-slider-id='slider' type="text" data-slider-min="0"
                    data-slider-max="100" data-slider-step="1" data-slider-value="{{ value }}"/>
         </div>
     </div>
 
 </td>
+-->
