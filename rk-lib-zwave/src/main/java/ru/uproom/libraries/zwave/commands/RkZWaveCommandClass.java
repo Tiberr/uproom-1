@@ -3,10 +3,12 @@ package ru.uproom.libraries.zwave.commands;
 import libraries.auxilliary.AppendingValue;
 import libraries.auxilliary.Bitfield;
 import libraries.auxilliary.ExtractingValue;
+import libraries.auxilliary.RunnableClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.libraries.zwave.devices.RkZWaveDevice;
 import ru.uproom.libraries.zwave.devices.RkZWaveDeviceParameter;
+import ru.uproom.libraries.zwave.enums.RkZWaveCommandClassInitSeqStep;
 import ru.uproom.libraries.zwave.enums.RkZWaveCommandClassNames;
 
 import java.util.HashMap;
@@ -30,78 +32,145 @@ public class RkZWaveCommandClass {
     protected static final int SCALE_SHIFT = 0x03;
     protected static final int PRECISION_MASK = 0xE0;
     protected static final int PRECISION_SHIFT = 0x05;
-
+    protected Bitfield instances = new Bitfield();
+    protected RkZWaveDevice device;
+    protected RunInitialSequence runInitialSequence = new RunInitialSequence();
+    protected RkZWaveVersionCommandClass versionCommandClass;
+    protected RkZWaveMultiInstanceCommandClass instanceCommandClass;
+    protected int currentInstanceForRequest = 0;
     private RkZWaveCommandClassNames name;
     private int version;
     private boolean haveVersion;
     private boolean afterMark;
     private int instancesNumber = 0x01;
-    private Bitfield instances = new Bitfield();
-
     private Map<Integer, Integer> endPointMap = new HashMap<>();
+    private boolean ready;
 
 
-    //----------------------------------------------------------------------------------------------
+    //##############################################################################################################
+    //######    constructors / destructors
+
 
     public RkZWaveCommandClass() {
+
         name = (RkZWaveCommandClassNames) getClass().
                 getAnnotation(RkZWaveCommandClassesAnnotation.class).value();
     }
 
 
-    //----------------------------------------------------------------------------------------------
+    //##############################################################################################################
+    //######    getters / setters
+
 
     public int getId() {
         return name.getCode();
     }
 
+
+    //----------------------------------------------------------------------------------------------
+
     public RkZWaveCommandClassNames getName() {
         return name;
     }
+
+
+    //----------------------------------------------------------------------------------------------
 
     public int getVersion() {
         return version;
     }
 
-    public void setVersion(RkZWaveDevice device, int version) {
+    public void setVersion(int version) {
+
         this.version = version;
         haveVersion = true;
         LOG.debug("COMMAND CLASS SET VERSION: command class = {}, version = {}", new Object[]{
                 name.name(),
                 version
         });
+
+        runInitialSequence.setInitSequenceStep(RkZWaveCommandClassInitSeqStep.GetVersion);
     }
 
-    public int createParameterList(RkZWaveDevice device, int instance) {
+
+    //----------------------------------------------------------------------------------------------
+
+    public boolean isReady() {
+        return ready;
+    }
+
+    protected void setReady(boolean ready) {
+
+        boolean condition = !this.ready && ready;
+        this.ready = ready;
+
+        if (condition) {
+            LOG.info("COMMAND CLASS READY : command class ({}), device ({})", new Object[]{
+                    name.name(),
+                    String.valueOf(device.getDeviceId())
+            });
+            device.commandClassReady(this);
+        }
+    }
+
+
+    //----------------------------------------------------------------------------------------------
+
+    public void setDevice(RkZWaveDevice device) {
+        this.device = device;
+    }
+
+
+    //----------------------------------------------------------------------------------------------
+
+    public void setCommonCommandClasses(
+            RkZWaveVersionCommandClass versionCommandClass,
+            RkZWaveMultiInstanceCommandClass instanceCommandClass
+    ) {
+
+        this.versionCommandClass = versionCommandClass;
+        this.instanceCommandClass = instanceCommandClass;
+    }
+
+
+    //##############################################################################################################
+    //######    methods
+
+    public int createParameterList(int instance) {
         return 0;
     }
 
-    public void requestDeviceParameter(RkZWaveDevice device, int instance) {
+    public void requestDeviceParameter(int instance) {
     }
 
     public void setDeviceParameter(RkZWaveDeviceParameter parameter, String value) {
     }
 
-    public void createInstance(RkZWaveDevice device, int instance) {
-        createParameterList(device, instance);
+
+    //----------------------------------------------------------------------------------------------
+
+    public void createInstance(int instance) {
+        createParameterList(instance);
     }
 
-    public void createInstances(RkZWaveDevice device, int instances) {
+    public void createInstances(int instances) {
         if (isAfterMark()) return;
 
-        for (int i = 1; i <= instances; ++i) {
-            createInstance(device, i);
-        }
-    }
+        setInstancesNumber(instances);
+        this.instances.clear();
 
-    public void requestDeviceState(RkZWaveDevice device, int instance) {
+        for (int i = 1; i <= instances; ++i) {
+            createInstance(i);
+        }
+
+        runInitialSequence.setInitSequenceStep(RkZWaveCommandClassInitSeqStep.GetInstances);
     }
 
     public int getInstanceEndPoint(int instance) {
         return endPointMap.get(instance);
     }
 
-    public void messageHandler(RkZWaveDevice device, int[] data, int instance) {
+    public void messageHandler(int[] data, int instance) {
         LOG.error("I am the method of base class. PLEASE, KILL ME!");
     }
 
@@ -109,13 +178,32 @@ public class RkZWaveCommandClass {
         endPointMap.put(instance, endPoint);
     }
 
-    public void requestStateForAllInstances(RkZWaveDevice device) {
-        for (int i = 1; i <= instancesNumber; i++) {
-            requestDeviceState(device, i);
-        }
+
+    //----------------------------------------------------------------------------------------------
+
+    public void requestDeviceState(int instance) {
     }
 
-    public void applyValueBasic(RkZWaveDevice device, int instance, int value) {
+    public void requestStateForNextInstance() {
+
+        if (instances.getNumSetBits() >= instancesNumber) {
+            currentInstanceForRequest = 0;
+            runInitialSequence.setInitSequenceStep(RkZWaveCommandClassInitSeqStep.GetState);
+            return;
+        }
+
+        if (currentInstanceForRequest <= 0)
+            currentInstanceForRequest = 1;
+        if (instances.isBit(currentInstanceForRequest))
+            currentInstanceForRequest++;
+
+        requestDeviceState(currentInstanceForRequest);
+    }
+
+
+    //----------------------------------------------------------------------------------------------
+
+    public void applyValueBasic(int instance, int value) {
     }
 
     protected boolean isHaveVersion() {
@@ -136,6 +224,11 @@ public class RkZWaveCommandClass {
 
     protected void setInstancesNumber(int instancesNumber) {
         this.instancesNumber = instancesNumber;
+        LOG.info("COMMAND CLASS INSTANCES : device ({}) command class ({}) has a ({}) instances", new Object[]{
+                device.getDeviceId(),
+                name.name(),
+                instancesNumber
+        });
     }
 
     protected int getInstance(int endPoint) {
@@ -243,7 +336,107 @@ public class RkZWaveCommandClass {
     protected void updateMappedClass(RkZWaveDevice device, int instance,
                                      RkZWaveCommandClassNames commandClassName, int level) {
         RkZWaveCommandClass commandClass = device.getCommandClassByName(commandClassName);
-        commandClass.applyValueBasic(device, instance, level);
+        commandClass.applyValueBasic(instance, level);
+    }
+
+
+    //----------------------------------------------------------------------------------------------
+
+    public void startInitSequence(long timeBetweenCheckInitSeq) {
+
+        runInitialSequence.setTimeout(timeBetweenCheckInitSeq);
+        new Thread(runInitialSequence).start();
+        runInitialSequence.restartInitSequence();
+    }
+
+
+    //##############################################################################################################
+    //######    inner classes
+
+
+    protected class RunInitialSequence extends RunnableClass {
+
+        private RkZWaveCommandClassInitSeqStep initSequenceStep = RkZWaveCommandClassInitSeqStep.Unknown;
+
+
+        public void restartInitSequence() {
+
+            initSequenceStep = RkZWaveCommandClassInitSeqStep.Unknown;
+            setInitSequenceStep(RkZWaveCommandClassInitSeqStep.Unknown);
+        }
+
+
+        public void setInitSequenceStep(RkZWaveCommandClassInitSeqStep stepId) {
+            boolean quit = false;
+
+            switch (initSequenceStep) {
+
+                case Unknown:
+                    if (stepId == RkZWaveCommandClassInitSeqStep.Unknown)
+                        initSequenceStep = RkZWaveCommandClassInitSeqStep.GetVersion;
+                    break;
+
+                case GetVersion:
+                    if (stepId == RkZWaveCommandClassInitSeqStep.GetVersion)
+                        initSequenceStep = RkZWaveCommandClassInitSeqStep.GetInstances;
+                    break;
+
+                case GetInstances:
+                    if (stepId == RkZWaveCommandClassInitSeqStep.GetInstances)
+                        initSequenceStep = RkZWaveCommandClassInitSeqStep.GetState;
+                    break;
+
+                case GetState:
+                    if (stepId == RkZWaveCommandClassInitSeqStep.GetState) {
+                        quit = true;
+                        initSequenceStep = RkZWaveCommandClassInitSeqStep.Unknown;
+                    }
+                    break;
+
+                default:
+            }
+
+            if (!quit) {
+                synchronized (this) {
+                    notify();
+                }
+            } else {
+                setReady(true);
+                stop();
+            }
+        }
+
+
+        @Override
+        protected void body() {
+            super.body();
+            if (initSequenceStep == RkZWaveCommandClassInitSeqStep.Unknown) return;
+
+            switch (initSequenceStep) {
+
+                case GetVersion:
+                    if (versionCommandClass != null)
+                        versionCommandClass.requestCommandClassVersion(name);
+                    else
+                        setVersion(0x01);
+                    break;
+
+                case GetInstances:
+                    if (instanceCommandClass != null)
+                        instanceCommandClass.requestInstance(name);
+                    else
+                        createInstances(0x01);
+                    break;
+
+                case GetState:
+                    requestStateForNextInstance();
+                    // todo : must be implemented for all command classes
+                    break;
+
+                default:
+            }
+
+        }
     }
 
 }

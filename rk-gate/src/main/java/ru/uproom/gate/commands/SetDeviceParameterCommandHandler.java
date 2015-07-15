@@ -20,7 +20,7 @@ public class SetDeviceParameterCommandHandler implements CommandHandler {
 
         DeviceDTO dto = ((SetDeviceParameterCommand) command).getDevice();
         if (dto == null) return false;
-        home.setDeviceDTO(dto);
+        home.applyParametersFromDeviceDto(dto);
 
         return true;
     }

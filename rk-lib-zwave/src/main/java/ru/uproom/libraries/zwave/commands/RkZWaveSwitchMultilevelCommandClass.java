@@ -26,31 +26,7 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void setVersion(RkZWaveDevice device, int version) {
-        super.setVersion(device, version);
-
-        if (version == 3) {
-            RkZWaveMessage message = new RkZWaveMessage(
-                    RkZWaveMessageTypes.Request,
-                    RkZWaveFunctionID.SEND_DATA,
-                    null, false
-            );
-            int[] data = new int[5];
-            data[0] = device.getDeviceId();
-            data[1] = 0x02;
-            data[2] = getId();
-            data[3] = 0x06; // command SUPPORTED GET
-            data[4] = 0x00; // transmit options (?)
-            message.setParameters(data);
-            device.getDevicePool().getDriver().addMessageToSendingQueue(message);
-        }
-
-    }
-
-    //-----------------------------------------------------------------------------------------------------------
-
-    @Override
-    public int createParameterList(RkZWaveDevice device, int instance) {
+    public int createParameterList(int instance) {
         int parametersNumber = 0;
         parameterNames = "";
 
@@ -210,7 +186,7 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     //@Override
-    public void messageHandler(RkZWaveDevice device, int[] data, int instance) {
+    public void messageHandler(int[] data, int instance) {
 
         // command REPORT
         if (data[0] == 0x03) {
@@ -229,30 +205,48 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
             //ClearStaticRequest( StaticRequest_Version );
             // Set the labels on the values (maybe we need it in future)
         }
+
+        instances.setBit(instance);
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceState(RkZWaveDevice device, int instance) {
-        super.requestDeviceState(device, instance);
+    public void requestDeviceState(int instance) {
+        super.requestDeviceState(instance);
 
-        requestDeviceParameter(device, instance);
+        if (getVersion() == 3) {
+            RkZWaveMessage message = new RkZWaveMessage(
+                    RkZWaveMessageTypes.Request,
+                    RkZWaveFunctionID.SEND_DATA,
+                    device, false
+            );
+            int[] data = new int[5];
+            data[0] = device.getDeviceId();
+            data[1] = 0x02;
+            data[2] = getId();
+            data[3] = 0x06; // command SUPPORTED GET
+            data[4] = 0x00; // transmit options (?)
+            message.setParameters(data);
+            device.getDevicePool().getDriver().addMessageToSendingQueue(message);
+
+        } else
+            requestDeviceParameter(instance);
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceParameter(RkZWaveDevice device, int instance) {
+    public void requestDeviceParameter(int instance) {
 
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                null, false
+                device, false
         );
-        message.applyInstance(device, this, instance);
+        message.applyInstance(this, instance);
         int[] data = new int[5];
         data[0] = device.getDeviceId();
         data[1] = 0x02;
@@ -319,9 +313,9 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                null, false
+                device, false
         );
-        message.applyInstance(parameter.getDevice(), this, parameter.getZWaveName().getInstance());
+        message.applyInstance(this, parameter.getZWaveName().getInstance());
         int[] data = new int[(duration != null) ? 7 : 6];
         data[0] = parameter.getDevice().getDeviceId();
         if (duration != null) {
@@ -382,7 +376,6 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
 
     private void startLevelChange(RkZWaveDeviceParameter parameter, RkZWaveLevelDirection direction) {
 
-        RkZWaveDevice device = parameter.getDevice();
         LOG.debug("start level change to ({}) for device ({})",
                 new Object[]{direction.name(), device.getDeviceId()});
 
@@ -427,9 +420,9 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                null, false
+                device, false
         );
-        message.applyInstance(device, this, parameter.getZWaveName().getInstance());
+        message.applyInstance(this, parameter.getZWaveName().getInstance());
         int[] data = new int[2 + length];
         data[0] = device.getDeviceId();
         data[1] = length;
@@ -448,14 +441,13 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     private void stopLevelChange(RkZWaveDeviceParameter parameter) {
-        RkZWaveDevice device = parameter.getDevice();
 
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                null, false
+                device, false
         );
-        message.applyInstance(device, this, parameter.getZWaveName().getInstance());
+        message.applyInstance(this, parameter.getZWaveName().getInstance());
         int[] data = new int[5];
         data[0] = device.getDeviceId();
         data[1] = 2;
@@ -470,8 +462,8 @@ public class RkZWaveSwitchMultilevelCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void applyValueBasic(RkZWaveDevice device, int instance, int value) {
-        super.applyValueBasic(device, instance, value);
+    public void applyValueBasic(int instance, int value) {
+        super.applyValueBasic(instance, value);
 
         // todo: apply WakeUp in this place
     }

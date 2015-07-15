@@ -1,15 +1,18 @@
 package ru.uproom.libraries.zwave.devices;
 
+import libraries.api.RkLibraryDevice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.libraries.zwave.commands.RkZWaveCommandClassFactory;
 import ru.uproom.libraries.zwave.driver.RkZWaveDriver;
-import ru.uproom.libraries.zwave.driver.RkZWaveMessage;
 import ru.uproom.libraries.zwave.enums.RkZWaveCommandClassNames;
+import ru.uproom.libraries.zwave.enums.RkZWaveControllerError;
+import ru.uproom.libraries.zwave.enums.RkZWaveControllerState;
 import ru.uproom.libraries.zwave.enums.RkZWaveFunctionID;
-import ru.uproom.libraries.zwave.enums.RkZWaveMessageTypes;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,6 +33,9 @@ public class RkZWaveDevicePool {
     private int controllerId;
 
     private boolean ready;
+    private RkZWaveFunctionID currentControllerCommand = RkZWaveFunctionID.UNKNOWN;
+    private RkZWaveControllerState controllerState = RkZWaveControllerState.Normal;
+    private RkZWaveControllerError controllerError = RkZWaveControllerError.None;
 
 
     //==================================================================================================
@@ -71,14 +77,59 @@ public class RkZWaveDevicePool {
     }
 
 
+    //------------------------------------------------------------------------
+
+    public int getControllerId() {
+        return controllerId;
+    }
+
+
+    //------------------------------------------------------------------------
+
+    public RkZWaveFunctionID getCurrentControllerCommand() {
+        return currentControllerCommand;
+    }
+
+    public void setCurrentControllerCommand(RkZWaveFunctionID currentControllerCommand) {
+        this.currentControllerCommand = currentControllerCommand;
+    }
+
+
+    //------------------------------------------------------------------------
+
+    public RkZWaveControllerState getControllerState() {
+        return controllerState;
+    }
+
+    public void setControllerState(RkZWaveControllerState controllerState) {
+        this.controllerState = controllerState;
+    }
+
+
+    //------------------------------------------------------------------------
+
+    public RkZWaveControllerError getControllerError() {
+        return controllerError;
+    }
+
+    public void setControllerError(RkZWaveControllerError controllerError) {
+        this.controllerError = controllerError;
+    }
+
+
     //==================================================================================================
     //======      methods
 
 
-    public void requestDeviceList() {
-        if (!ready) return;
+    public List<RkLibraryDevice> getDeviceList() {
+        if (!ready) return null;
 
-        //todo : realize getting device list
+        final List<RkLibraryDevice> libraryDevices = new LinkedList<>();
+        for (Map.Entry<Integer, RkZWaveDevice> entry : devices.entrySet()) {
+            libraryDevices.add(entry.getValue());
+        }
+
+        return libraryDevices;
     }
 
 
@@ -91,13 +142,13 @@ public class RkZWaveDevicePool {
 
     //-----------------------------------------------------------------------------------
 
-    private void requestDeviceInfo(RkZWaveDevice device) {
-        RkZWaveMessage message = new RkZWaveMessage(
-                RkZWaveMessageTypes.Request, RkZWaveFunctionID.REQUEST_NODE_INFO, device, true);
-        int[] data = new int[1];
-        data[0] = device.getDeviceId();
-        message.setParameters(data);
-        driver.addMessageToSendingQueue(message);
+    private void startDevicesInitSequence() {
+
+        synchronized (devices) {
+            for (Map.Entry<Integer, RkZWaveDevice> entry : devices.entrySet()) {
+                entry.getValue().startInitSequence();
+            }
+        }
     }
 
 
@@ -108,44 +159,7 @@ public class RkZWaveDevicePool {
         RkZWaveDevice device = devices.get(deviceId);
         if (device == null) return;
 
-        device.fillCommandClassList(info);
-        // todo: probably add to this point Node::AdvancedQueries
-    }
-
-
-    //-----------------------------------------------------------------------------------
-
-    private void requestDevicesFailedId() {
-
-        for (Map.Entry<Integer, RkZWaveDevice> entry : devices.entrySet()) {
-            requestDeviceFailedId(entry.getValue());
-        }
-    }
-
-
-    //-----------------------------------------------------------------------------------
-
-    private void requestDeviceFailedId(RkZWaveDevice device) {
-
-        RkZWaveMessage message = new RkZWaveMessage(
-                RkZWaveMessageTypes.Request, RkZWaveFunctionID.IS_FAILED_NODE_ID, device, true);
-        int[] data = new int[1];
-        data[0] = device.getDeviceId();
-        message.setParameters(data);
-        driver.addMessageToSendingQueue(message);
-    }
-
-
-    //-----------------------------------------------------------------------------------
-
-    public void updateDeviceFailedId(int deviceId, boolean failed) {
-
-        RkZWaveDevice device = devices.get(deviceId);
-        if (device == null) return;
-
-        device.setFailedId(failed);
-        if (!failed)
-            requestDeviceInfo(device);
+        device.updateInfo(info);
     }
 
 
@@ -153,13 +167,14 @@ public class RkZWaveDevicePool {
 
     public void setControllerReady(boolean ready) {
         if (ready)
-            requestDevicesFailedId();
+            startDevicesInitSequence();
     }
 
 
     //-----------------------------------------------------------------------------------
 
     public void setParameters(long homeId, int controllerId) {
+
         this.homeId = homeId;
         this.controllerId = controllerId;
     }
@@ -226,6 +241,25 @@ public class RkZWaveDevicePool {
         System.arraycopy(data, 4, parameters, 0, parameters.length);
 
         device.applyDeviceParametersFromByteArray(commandClass, parameters);
+    }
+
+
+    //-----------------------------------------------------------------------------------
+
+    public void deviceReady() {
+
+        boolean allDevicesReady = true;
+        for (Map.Entry<Integer, RkZWaveDevice> entry : devices.entrySet()) {
+            if (!entry.getValue().isReady()) {
+                allDevicesReady = false;
+                break;
+            }
+        }
+        if (allDevicesReady) {
+            LOG.info("DEVICE POOL READY");
+            ready = true;
+            driver.devicePoolReady(true);
+        }
     }
 
 }

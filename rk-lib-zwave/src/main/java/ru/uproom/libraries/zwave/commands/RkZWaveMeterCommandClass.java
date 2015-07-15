@@ -4,7 +4,6 @@ import libraries.auxilliary.ExtractingValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.transport.dto.parameters.DeviceParametersNames;
-import ru.uproom.libraries.zwave.devices.RkZWaveDevice;
 import ru.uproom.libraries.zwave.devices.RkZWaveDeviceParameter;
 import ru.uproom.libraries.zwave.driver.RkZWaveMessage;
 import ru.uproom.libraries.zwave.enums.*;
@@ -22,8 +21,10 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
             LoggerFactory.getLogger(RkZWaveMeterCommandClass.class);
 
 
+    //-----------------------------------------------------------------------------------------------------------
+
     @Override
-    public int createParameterList(RkZWaveDevice device, int instance) {
+    public int createParameterList(int instance) {
 
         int parametersNumber = 0;
         String parameterNames = "";
@@ -43,33 +44,35 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void messageHandler(RkZWaveDevice device, int[] data, int instance) {
+    public void messageHandler(int[] data, int instance) {
 
         if (!isHaveVersion()) return;
 
         // command SUPPORTED_REPORT
-        if (data[0] == 0x04)
-            messageSupportedReportHandler(device, data);
+        if (data[0] == 0x04) {
+            messageSupportedReportHandler(data, instance);
+            instances.setBit(instance);
+        }
 
-            // command REPORT
+        // command REPORT
         else if (data[0] == 0x02)
-            messageReportHandler(device, data);
+            messageReportHandler(data, instance);
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceState(RkZWaveDevice device, int instance) {
-        super.requestDeviceState(device, instance);
+    public void requestDeviceState(int instance) {
+        super.requestDeviceState(instance);
 
         if (getVersion() > 1) {
             RkZWaveMessage message = new RkZWaveMessage(
                     RkZWaveMessageTypes.Request,
                     RkZWaveFunctionID.SEND_DATA,
-                    null, true
+                    device, true
             );
-            message.applyInstance(device, this, instance);
+            message.applyInstance(this, instance);
             int[] data = new int[5];
             data[0] = device.getDeviceId();
             data[1] = 0x02;
@@ -85,7 +88,7 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceParameter(RkZWaveDevice device, int instance) {
+    public void requestDeviceParameter(int instance) {
 
         for (int i = 0; i < 8; ++i) {
 
@@ -95,9 +98,9 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
             RkZWaveMessage message = new RkZWaveMessage(
                     RkZWaveMessageTypes.Request,
                     RkZWaveFunctionID.SEND_DATA,
-                    null, false
+                    device, false
             );
-            message.applyInstance(device, this, instance);
+            message.applyInstance(this, instance);
             int[] data = new int[6];
             data[0] = device.getDeviceId();
             data[1] = 0x03;
@@ -133,7 +136,7 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                null, false
+                device, false
         );
         int[] data = new int[6];
         message.applyInstance(parameter);
@@ -150,7 +153,7 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
 
     //-----------------------------------------------------------------------------------------------------------
 
-    private void messageSupportedReportHandler(RkZWaveDevice device, int[] data) {
+    private void messageSupportedReportHandler(int[] data, int instance) {
         int parametersNumber = 0;
         String parameterNames = "";
 
@@ -164,7 +167,7 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
             if ((scaleSupported & (0x01 << i)) != 0x00) {
 
                 RkZWaveDeviceParameterNames parameterName = RkZWaveDeviceParameterNames.
-                        byParameterProperties(getName(), 1, meterType.getCode(), i);
+                        byParameterProperties(getName(), instance, meterType.getCode(), i);
                 parameter = device.getDeviceParameterByName(parameterName);
 
                 if (parameter != null) {
@@ -215,12 +218,14 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
                 parametersNumber,
                 parameterNames
         });
+
+        currentInstanceForRequest = instance + 1;
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
-    private void messageReportHandler(RkZWaveDevice device, int[] data) {
+    private void messageReportHandler(int[] data, int instance) {
 
         // todo: destroy in this place
 
@@ -228,7 +233,8 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
         if (getVersion() > 0x01) {
             exporting = ((data[1] & 0x60) == 0x40);
             RkZWaveDeviceParameter parameter =
-                    device.getDeviceParameterByName(RkZWaveDeviceParameterNames.Exporting);
+                    device.getDeviceParameterByName(
+                            RkZWaveDeviceParameterNames.Exporting);
             if (parameter != null) {
                 parameter.setValue(Boolean.toString(exporting));
             }
@@ -239,21 +245,21 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
         ExtractingValue extractingValue = extractValueFromInts(subData);
 
         if (getVersion() == 1) {
-            messageReportHandlerVer1(device, data, extractingValue);
+            messageReportHandlerVer1(data, instance, extractingValue);
         } else {
-            messageReportHandlerVer2(device, data, extractingValue);
+            messageReportHandlerVer2(data, instance, extractingValue);
         }
 
     }
 
-    private void messageReportHandlerVer1(RkZWaveDevice device, int[] data, ExtractingValue extractingValue) {
+    private void messageReportHandlerVer1(int[] data, int instance, ExtractingValue extractingValue) {
 
         RkZWaveMeterType meterType = RkZWaveMeterType.getByCode(data[1] & 0x1f);
         int index = extractingValue.getScale();
 
         RkZWaveDeviceParameterNames parameterName =
                 RkZWaveDeviceParameterNames.byParameterProperties
-                        (getName(), 1, meterType.getCode(), index);
+                        (getName(), instance, meterType.getCode(), index);
         RkZWaveDeviceParameter parameter = device.getDeviceParameterByName(parameterName);
 
         if (parameter != null) {
@@ -264,7 +270,7 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
         }
     }
 
-    private void messageReportHandlerVer2(RkZWaveDevice device, int[] data, ExtractingValue extractingValue) {
+    private void messageReportHandlerVer2(int[] data, int instance, ExtractingValue extractingValue) {
 
         RkZWaveMeterType meterType = RkZWaveMeterType.getByCode(data[1] & 0x1f);
 
@@ -274,7 +280,7 @@ public class RkZWaveMeterCommandClass extends RkZWaveCommandClass {
 
         RkZWaveDeviceParameterNames parameterName =
                 RkZWaveDeviceParameterNames.byParameterProperties
-                        (getName(), 1, meterType.getCode(), index);
+                        (getName(), instance, meterType.getCode(), index);
         RkZWaveDeviceParameter parameter = device.getDeviceParameterByName(parameterName);
 
         if (parameter != null) {

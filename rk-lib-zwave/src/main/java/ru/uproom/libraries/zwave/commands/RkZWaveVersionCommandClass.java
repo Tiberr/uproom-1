@@ -3,7 +3,6 @@ package ru.uproom.libraries.zwave.commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.transport.dto.parameters.DeviceParametersNames;
-import ru.uproom.libraries.zwave.devices.RkZWaveDevice;
 import ru.uproom.libraries.zwave.devices.RkZWaveDeviceParameter;
 import ru.uproom.libraries.zwave.driver.RkZWaveMessage;
 import ru.uproom.libraries.zwave.enums.RkZWaveCommandClassNames;
@@ -27,7 +26,7 @@ public class RkZWaveVersionCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public int createParameterList(RkZWaveDevice device, int instance) {
+    public int createParameterList(int instance) {
         int parametersNumber = 0;
         String parameterNames = "";
 
@@ -79,23 +78,26 @@ public class RkZWaveVersionCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void messageHandler(RkZWaveDevice device, int[] data, int instance) {
+    public void messageHandler(int[] data, int instance) {
 
         // command REPORT
         if (data[0] == 0x12) {
             device.applyDeviceParametersFromName(
                     RkZWaveDeviceParameterNames.LibraryVersion, String.format("%d", data[1]));
             device.applyDeviceParametersFromName(
-                    RkZWaveDeviceParameterNames.ProtocolVersion, String.format("%d.%.2d", data[2], data[3]));
+                    RkZWaveDeviceParameterNames.ProtocolVersion, String.format("%d.%02d", data[2], data[3]));
             device.applyDeviceParametersFromName(
-                    RkZWaveDeviceParameterNames.ApplicationVersion, String.format("%d.%.2d", data[4], data[5]));
+                    RkZWaveDeviceParameterNames.ApplicationVersion, String.format("%d.%02d", data[4], data[5]));
+
+            instances.setBit(instance);
             return;
         }
 
         // command CLASS_REPORT
         if (data[0] == 0x14) {
-            RkZWaveCommandClassNames commandClassName = RkZWaveCommandClassNames.getByCode(data[1]);
-            device.applyCommandClassVersion(commandClassName, data[2]);
+            RkZWaveCommandClass commandClass = device.getCommandClassById(data[1]);
+            if (commandClass != null)
+                commandClass.setVersion(data[2]);
         }
     }
 
@@ -103,20 +105,22 @@ public class RkZWaveVersionCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceState(RkZWaveDevice device, int instance) {
-        super.requestDeviceState(device, instance);
+    public void requestDeviceState(int instance) {
+        super.requestDeviceState(instance);
+
+        requestDeviceParameter(instance);
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceParameter(RkZWaveDevice device, int instance) {
+    public void requestDeviceParameter(int instance) {
 
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                null, false
+                device, false
         );
         int[] data = new int[5];
         data[0] = device.getDeviceId();
@@ -141,12 +145,12 @@ public class RkZWaveVersionCommandClass extends RkZWaveCommandClass {
 
     //-----------------------------------------------------------------------------------------------------------
 
-    public void requestCommandClassVersion(RkZWaveDevice device, RkZWaveCommandClassNames commandClassName) {
+    public void requestCommandClassVersion(RkZWaveCommandClassNames commandClassName) {
 
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                null, true
+                device, true
         );
         int[] data = new int[6];
         data[0] = device.getDeviceId();

@@ -31,7 +31,7 @@ public class RkZWaveBasicCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public int createParameterList(RkZWaveDevice device, int instance) {
+    public int createParameterList(int instance) {
 
         if (mapping == RkZWaveCommandClassNames.NoOperation) return 0;
 
@@ -65,16 +65,15 @@ public class RkZWaveBasicCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     //@Override
-    public void messageHandler(RkZWaveDevice device, int[] data, int instance) {
+    public void messageHandler(int[] data, int instance) {
 
         // command REPORT
         if (data[0] == 0x03) {
             messageHandlerSetBasic(device, data, instance);
-            return;
         }
 
         // command SET
-        if (data[0] == 0x01) {
+        else if (data[0] == 0x01) {
             if (setAsReport) {
                 messageHandlerSetBasic(device, data, instance);
             } else {
@@ -82,7 +81,10 @@ public class RkZWaveBasicCommandClass extends RkZWaveCommandClass {
                 // notification->SetEvent( _data[1] );
             }
         }
+
+        instances.setBit(instance);
     }
+
 
     public void messageHandlerSetBasic(RkZWaveDevice device, int[] data, int instance) {
         if (!ignoreMapping && mapping != RkZWaveCommandClassNames.NoOperation) {
@@ -98,22 +100,23 @@ public class RkZWaveBasicCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceState(RkZWaveDevice device, int instance) {
-        requestDeviceParameter(device, instance);
+    public void requestDeviceState(int instance) {
+
+        requestDeviceParameter(instance);
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceParameter(RkZWaveDevice device, int instance) {
+    public void requestDeviceParameter(int instance) {
 
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                null, false
+                device, false
         );
-        message.applyInstance(device, this, instance);
+        message.applyInstance(this, instance);
         int[] data = new int[5];
         data[0] = device.getDeviceId();
         data[1] = 0x02;
@@ -147,9 +150,9 @@ public class RkZWaveBasicCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                null, false
+                device, false
         );
-        message.applyInstance(parameter.getDevice(), this, parameter.getZWaveName().getInstance());
+        message.applyInstance(this, parameter.getZWaveName().getInstance());
         int[] data = new int[6];
         data[0] = (byte) parameter.getDevice().getDeviceId();
         data[1] = 0x03;
@@ -166,8 +169,8 @@ public class RkZWaveBasicCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void applyValueBasic(RkZWaveDevice device, int instance, int value) {
-        super.applyValueBasic(device, instance, value);
+    public void applyValueBasic(int instance, int value) {
+        super.applyValueBasic(instance, value);
 
         // todo: apply WakeUp in this place
     }

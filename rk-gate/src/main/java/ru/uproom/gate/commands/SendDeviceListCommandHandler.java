@@ -24,7 +24,7 @@ public class SendDeviceListCommandHandler implements CommandHandler {
         if (command == null || !(command instanceof SendDeviceListCommand)) return false;
 
         for (DeviceDTO dto : ((SendDeviceListCommand) command).getDevices()) {
-            home.setDeviceDTO(dto);
+            home.applyParametersFromDeviceDto(dto);
         }
 
         LOG.debug("Handle server command : {}", command.getType());

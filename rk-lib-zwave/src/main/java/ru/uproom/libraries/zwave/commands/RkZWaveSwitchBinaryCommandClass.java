@@ -3,7 +3,6 @@ package ru.uproom.libraries.zwave.commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.uproom.gate.transport.dto.parameters.DeviceParametersNames;
-import ru.uproom.libraries.zwave.devices.RkZWaveDevice;
 import ru.uproom.libraries.zwave.devices.RkZWaveDeviceParameter;
 import ru.uproom.libraries.zwave.driver.RkZWaveMessage;
 import ru.uproom.libraries.zwave.enums.RkZWaveCommandClassNames;
@@ -27,7 +26,7 @@ public class RkZWaveSwitchBinaryCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public int createParameterList(RkZWaveDevice device, int instance) {
+    public int createParameterList(int instance) {
         int parametersNumber = 0;
         String parameterNames = "";
 
@@ -58,7 +57,7 @@ public class RkZWaveSwitchBinaryCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     //@Override
-    public void messageHandler(RkZWaveDevice device, int[] data, int instance) {
+    public void messageHandler(int[] data, int instance) {
 
         // command REPORT
         if (data[0] == 0x03) {
@@ -67,30 +66,32 @@ public class RkZWaveSwitchBinaryCommandClass extends RkZWaveCommandClass {
             device.applyDeviceParametersFromName(
                     parameterName, (data[1] != 0 ? "true" : "false"));
         }
+
+        instances.setBit(instance);
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceState(RkZWaveDevice device, int instance) {
-        super.requestDeviceState(device, instance);
+    public void requestDeviceState(int instance) {
+        super.requestDeviceState(instance);
 
-        requestDeviceParameter(device, instance);
+        requestDeviceParameter(instance);
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceParameter(RkZWaveDevice device, int instance) {
+    public void requestDeviceParameter(int instance) {
 
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                null, false
+                device, false
         );
-        message.applyInstance(device, this, instance);
+        message.applyInstance(this, instance);
         int[] data = new int[5];
         data[0] = device.getDeviceId();
         data[1] = 0x02;
@@ -126,9 +127,9 @@ public class RkZWaveSwitchBinaryCommandClass extends RkZWaveCommandClass {
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                null, false
+                device, false
         );
-        message.applyInstance(parameter.getDevice(), this, parameter.getZWaveName().getInstance());
+        message.applyInstance(this, parameter.getZWaveName().getInstance());
         int[] data = new int[6];
         data[0] = parameter.getDevice().getDeviceId();
         data[1] = 0x03;
@@ -145,8 +146,8 @@ public class RkZWaveSwitchBinaryCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void applyValueBasic(RkZWaveDevice device, int instance, int value) {
-        super.applyValueBasic(device, instance, value);
+    public void applyValueBasic(int instance, int value) {
+        super.applyValueBasic(instance, value);
 
         // todo: apply WakeUp in this place
     }

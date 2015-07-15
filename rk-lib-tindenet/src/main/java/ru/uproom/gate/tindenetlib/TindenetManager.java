@@ -1,9 +1,6 @@
 package ru.uproom.gate.tindenetlib;
 
-import libraries.api.RkLibraryDriver;
-import libraries.api.RkLibraryEvent;
-import libraries.api.RkLibraryEventListener;
-import libraries.api.RkLibraryManager;
+import libraries.api.*;
 import libraries.auxilliary.RunnableClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,12 +159,32 @@ public class TindenetManager implements RkLibraryDriver {
     }
 
     @Override
-    public void requestDeviceList() {
-
+    public List<RkLibraryDevice> getDeviceList() {
+        return null;
     }
 
     @Override
     public void applyDeviceParameters() {
+
+    }
+
+    @Override
+    public void toggleControllerToAddingMode() {
+
+    }
+
+    @Override
+    public void toggleControllerToRemovingMode() {
+
+    }
+
+    @Override
+    public void interruptCurrentCommandInController() {
+
+    }
+
+    @Override
+    public void removeFailedDevice(RkLibraryDevice device) {
 
     }
 

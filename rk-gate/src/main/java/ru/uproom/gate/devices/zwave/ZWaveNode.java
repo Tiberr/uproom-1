@@ -328,30 +328,11 @@ public class ZWaveNode {
                 break;
 
             case MultilevelSwitch:
-                String level = "0";
-                if (parameterSwitch == null
-                        || parameterSwitch.toString().equalsIgnoreCase("true")
-                        || parameterSwitch.toString().equalsIgnoreCase("on")) {
-                    if (parameterLevel != null) {
-                        level = parameterLevel.toString();
-                    }
-                }
-                applyParameterLevel(level);
+                if (parameterLevel != null) applyParameterLevel(parameterLevel);
                 break;
 
             case Rgbw:
-                level = "0";
-                String color = "0";
-                if (parameterSwitch == null
-                        || parameterSwitch.toString().equalsIgnoreCase("true")
-                        || parameterSwitch.toString().equalsIgnoreCase("on")) {
-                    if (parameterLevel != null)
-                        level = parameterLevel.toString();
-                    if (parameterColor != null)
-                        color = parameterColor.toString();
-                }
-                applyParameterLevel(level);
-                applyParameterColor(color);
+                if (parameterColor != null) applyParameterColor(parameterColor);
                 break;
 
             default:

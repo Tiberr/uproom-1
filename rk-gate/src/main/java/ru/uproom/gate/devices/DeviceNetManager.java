@@ -6,16 +6,21 @@ import libraries.api.RkLibraryManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.uproom.gate.devices.zwave.ZWaveDeviceParametersNames;
 import ru.uproom.gate.transport.ServerTransport;
+import ru.uproom.gate.transport.command.SendDeviceListCommand;
 import ru.uproom.gate.transport.dto.DeviceDTO;
 import ru.uproom.gate.transport.dto.parameters.DeviceStateEnum;
 import ru.uproom.libraries.zwave.driver.RkZWaveDriver;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * inner class which contain list of Z-Wave devices
@@ -30,31 +35,52 @@ public class DeviceNetManager implements GateDevicesSet, RkLibraryManager {
     //######    fields
 
     private static final Logger LOG = LoggerFactory.getLogger(GateDevicesSet.class);
-    private final RkLibraryDriver libraryDriver = new RkZWaveDriver();
+    private final Map<Integer, GateDevice> devices = new HashMap<>();
     @Autowired
     private ServerTransport transport;
     private long homeId;
     private boolean ready;
     private boolean failed;
     private DeviceStateEnum requestState;
+    @Value("${used_library}")
+    private String usedLibrary;
+    private RkLibraryDriver libraryDriver;
 
 
     //##############################################################################################################
-    //######    constructors
+    //######    constructors / destructors
 
     @PostConstruct
     public void create() {
-        LOG.debug(" ==== >> ==== starting DeviceNetManager ==== >> ====");
+        LOG.debug(" ==== >> ==== preparing DeviceNetManager ==== >> ====");
+
+        switch (usedLibrary) {
+            case "zwave":
+                libraryDriver = new RkZWaveDriver();
+                break;
+
+            case "tindenet":
+                //libraryDriver = new RkTindenetDriver();
+                break;
+
+            default:
+        }
 
         libraryDriver.setLibraryManager(this);
-        libraryDriver.create();
 
-        LOG.debug(" ==== >> ==== DeviceNetManager started ==== >> ====");
+        LOG.debug(" ==== >> ==== DeviceNetManager prepared ==== >> ====");
     }
 
     @PreDestroy
     public void destroy() {
         libraryDriver.destroy();
+    }
+
+    @Override
+    public void start() {
+        LOG.info(" ==== >> ==== starting DeviceNetManager ==== >> ====");
+        libraryDriver.create();
+        LOG.info(" ==== >> ==== DeviceNetManager started ==== >> ====");
     }
 
 
@@ -132,6 +158,23 @@ public class DeviceNetManager implements GateDevicesSet, RkLibraryManager {
 
     @Override
     public void requestMode(DeviceStateEnum mode) {
+
+        switch (mode) {
+
+            case Add:
+                libraryDriver.toggleControllerToAddingMode();
+                break;
+
+            case Remove:
+                libraryDriver.toggleControllerToRemovingMode();
+                break;
+
+            case Cancel:
+                libraryDriver.interruptCurrentCommandInController();
+                break;
+
+            default:
+        }
     }
 
     @Override
@@ -141,7 +184,6 @@ public class DeviceNetManager implements GateDevicesSet, RkLibraryManager {
 
 
     //------------------------------------------------------------------------
-    // give transport object for all interested
 
     @Override
     public ServerTransport getTransport() {
@@ -150,7 +192,6 @@ public class DeviceNetManager implements GateDevicesSet, RkLibraryManager {
 
 
     //------------------------------------------------------------------------
-    // state of Z-Wave Network Controller
 
     @Override
     public DeviceStateEnum getControllerState() {
@@ -163,35 +204,38 @@ public class DeviceNetManager implements GateDevicesSet, RkLibraryManager {
 
 
     //##############################################################################################################
-    //######    inner classes
-
-
-    //------------------------------------------------------------------------
-    // create Z-Wave driver and keep it work
-
-    public List<DeviceDTO> getDeviceDTOList() {
-
-        libraryDriver.requestDeviceList();
-        return null;
-    }
-
-
-    //##############################################################################################################
     //######    methods
 
 
     //------------------------------------------------------------------------
-    // get device list for data transfer to server
 
     @Override
-    public void setDeviceDTO(DeviceDTO dto) {
+    public List<DeviceDTO> getDeviceDtoList() {
 
-        libraryDriver.applyDeviceParameters();
+        List<DeviceDTO> dtoList = new ArrayList<>();
+        for (Map.Entry<Integer, GateDevice> entry : devices.entrySet()) {
+            dtoList.add(entry.getValue().getDeviceDto());
+        }
+
+        if (ready)
+            transport.sendCommand(new SendDeviceListCommand(dtoList));
+
+        return dtoList;
     }
 
 
     //------------------------------------------------------------------------
-    //  find node by ServerID
+
+    @Override
+    public void applyParametersFromDeviceDto(DeviceDTO dto) {
+
+        GateDevice device = devices.get(dto.getZId());
+        if (device != null)
+            device.applyParametersFromDto(dto);
+    }
+
+
+    //------------------------------------------------------------------------
 
     @Override
     public String toString() {
@@ -205,8 +249,19 @@ public class DeviceNetManager implements GateDevicesSet, RkLibraryManager {
 
     @Override
     public void eventLibraryReady(boolean ready) {
+
+        boolean readyWillBeSet = !this.ready && ready;
         this.ready = ready;
-        getDeviceDTOList();
+
+        if (readyWillBeSet) {
+
+            LOG.info("LIBRARY READY");
+            List<RkLibraryDevice> libraryDevices = libraryDriver.getDeviceList();
+            for (RkLibraryDevice libraryDevice : libraryDevices) {
+                devices.put(libraryDevice.getDeviceId(), new GateDevice(this, libraryDevice));
+            }
+            getDeviceDtoList();
+        }
     }
 
     @Override

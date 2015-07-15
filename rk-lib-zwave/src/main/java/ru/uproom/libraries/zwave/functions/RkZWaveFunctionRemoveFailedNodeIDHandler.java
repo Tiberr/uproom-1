@@ -2,9 +2,9 @@ package ru.uproom.libraries.zwave.functions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.uproom.libraries.zwave.devices.RkZWaveDevicePool;
 import ru.uproom.libraries.zwave.driver.RkZWaveMessage;
-import ru.uproom.libraries.zwave.enums.RkZWaveFunctionID;
-import ru.uproom.libraries.zwave.enums.RkZWaveMessageTypes;
+import ru.uproom.libraries.zwave.enums.*;
 
 /**
  * z-wave function
@@ -23,10 +23,56 @@ public class RkZWaveFunctionRemoveFailedNodeIDHandler implements RkZWaveFunction
     public boolean execute(RkZWaveMessageTypes messageType, int[] parameters,
                            RkZWaveFunctionHandlePool pool, RkZWaveMessage request) {
 
-        LOG.debug("execute function : {}",
-                getClass().getAnnotation(RkZWaveFunctionHandlerAnnotation.class).value().name());
+        RkZWaveDevicePool devicePool = pool.getDevicePool();
 
-        return false;
+        RkZWaveControllerState state = RkZWaveControllerState.Normal;
+        RkZWaveControllerError error = RkZWaveControllerError.None;
+
+        String logState = "";
+        RkZWaveFailedNodeState failedNodeState = RkZWaveFailedNodeState.getByCode(parameters[0]);
+        switch (failedNodeState) {
+
+            case Unknown:
+                state = RkZWaveControllerState.InProgress;
+                logState = "In Progress";
+                break;
+
+            case NotFound:
+                logState = "Not Found";
+                error = RkZWaveControllerError.NotFound;
+                break;
+
+            case RemoveProcessBusy:
+                logState = "Remove Process Busy";
+                error = RkZWaveControllerError.Busy;
+                break;
+
+            case RemoveFail:
+                logState = "Remove Fail";
+                error = RkZWaveControllerError.Failed;
+                break;
+
+            case NotPrimaryController:
+                logState = "Not Primary Controller";
+                error = RkZWaveControllerError.NotPrimary;
+                break;
+
+            default:
+                logState = "Command Failed";
+        }
+
+        devicePool.setControllerState(state);
+        devicePool.setControllerError(error);
+
+        if (request != null)
+            pool.getDriver().currentRequestReceived(request.getFunctionID());
+
+        LOG.debug("execute function : {} state of removing failed process ({})", new Object[]{
+                getClass().getAnnotation(RkZWaveFunctionHandlerAnnotation.class).value().name(),
+                logState
+        });
+
+        return true;
     }
 
 }

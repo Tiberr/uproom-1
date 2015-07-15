@@ -12,9 +12,19 @@ public class Bitfield {
     private final List<Integer> bits = new ArrayList<>();
     private int numSetBits;
 
+    public Bitfield() {
+        if (bits.size() <= 0)
+            bits.add(0);
+    }
 
     public int getNumSetBits() {
         return numSetBits;
+    }
+
+    public void clear() {
+        numSetBits = 0;
+        bits.clear();
+        bits.add(0);
     }
 
     public boolean isBit(int bitNumber) {

@@ -58,7 +58,12 @@ public class RkZWaveCommandClassFactory {
     //-----------------------------------------------------------------------------------------------------------
 
     public RkZWaveCommandClass getCommandClass(int commandClassId) {
-        return commandClasses.get(RkZWaveCommandClassNames.getByCode(commandClassId));
+
+        RkZWaveCommandClassNames commandClassName = RkZWaveCommandClassNames.getByCode(commandClassId);
+        RkZWaveCommandClass commandClass = commandClasses.get(commandClassName);
+
+        return commandClass == null ? null :
+                (RkZWaveCommandClass) ClassesSearcher.instantiate(commandClass.getClass());
     }
 
 }

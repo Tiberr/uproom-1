@@ -2,8 +2,6 @@ package ru.uproom.libraries.zwave.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.uproom.libraries.zwave.devices.RkZWaveDevice;
-import ru.uproom.libraries.zwave.devices.RkZWaveDeviceParameter;
 import ru.uproom.libraries.zwave.driver.RkZWaveMessage;
 import ru.uproom.libraries.zwave.enums.RkZWaveCommandClassNames;
 import ru.uproom.libraries.zwave.enums.RkZWaveFunctionID;
@@ -39,7 +37,7 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
             0x13,        // Toggle Switch
             0x03,        // AV Control Point
             0x04,        // Display
-            0x00        // End of list
+            0x00         // End of list
     };
     private boolean numberOfEndPointsCanChange;
     private boolean endPointsAreSameClass;
@@ -53,46 +51,27 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public int createParameterList(RkZWaveDevice device, int instance) {
-        int parametersNumber = 0;
-        String parameterNames = "";
-
-        RkZWaveCommandClassNames annotation =
-                (RkZWaveCommandClassNames) getClass().getAnnotation(RkZWaveCommandClassesAnnotation.class).value();
-        LOG.debug("ADD COMMAND CLASS : {}, implement {} parameter(s) ({}) ", new Object[]{
-                annotation.name(),
-                parametersNumber,
-                parameterNames
-        });
-
-        return parametersNumber;
-    }
-
-
-    //-----------------------------------------------------------------------------------------------------------
-
-    @Override
-    public void messageHandler(RkZWaveDevice device, int[] data, int instance) {
+    public void messageHandler(int[] data, int instance) {
 
         switch (data[0]) {
 
             case 0x05:
-                handleMultiInstanceReport(device, data);
+                handleMultiInstanceReport(data);
                 break;
             case 0x06:
-                handleMultiInstanceEncap(device, data);
+                handleMultiInstanceEncap(data);
                 break;
             case 0x08:
-                handleMultiChannelEndPointReport(device, data);
+                handleMultiChannelEndPointReport(data);
                 break;
             case 0x0A:
-                handleMultiChannelCapabilityReport(device, data);
+                handleMultiChannelCapabilityReport(data);
                 break;
             case 0x0C:
-                handleMultiChannelEndPointFindReport(device, data);
+                handleMultiChannelEndPointFindReport(data);
                 break;
             case 0x0D:
-                handleMultiChannelEncap(device, data);
+                handleMultiChannelEncap(data);
                 break;
 
             default:
@@ -104,79 +83,21 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
     //-----------------------------------------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceState(RkZWaveDevice device, int instance) {
-        super.requestDeviceState(device, instance);
+    public void requestDeviceState(int instance) {
+        super.requestDeviceState(instance);
+
+        instances.setBit(instance);
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
-    @Override
-    public void requestDeviceParameter(RkZWaveDevice device, int instance) {
+    public void requestInstance(RkZWaveCommandClassNames commandClassName) {
 
         RkZWaveMessage message = new RkZWaveMessage(
                 RkZWaveMessageTypes.Request,
                 RkZWaveFunctionID.SEND_DATA,
-                null, false
-        );
-        int[] params = new int[5];
-        params[0] = device.getDeviceId();
-        params[1] = 0x02;
-        params[2] = getId();
-        params[3] = 0x02; // command GET
-        params[4] = 0x00; // transmit options (?)
-        message.setParameters(params);
-        device.getDevicePool().getDriver().addMessageToSendingQueue(message);
-
-    }
-
-
-    //-----------------------------------------------------------------------------------------------------------
-
-    @Override
-    public void setDeviceParameter(RkZWaveDeviceParameter parameter, String value) {
-
-        switch (parameter.getZWaveName()) {
-            case Switch:
-                setSwitchDeviceParameter(parameter, value);
-                break;
-            default:
-        }
-    }
-
-
-    //-----------------------------------------------------------------------------------------------------------
-
-    public void setSwitchDeviceParameter(RkZWaveDeviceParameter parameter, String value) {
-
-        if (!value.equalsIgnoreCase("true") && !value.equalsIgnoreCase("false")) return;
-
-        RkZWaveMessage message = new RkZWaveMessage(
-                RkZWaveMessageTypes.Request,
-                RkZWaveFunctionID.SEND_DATA,
-                null, false
-        );
-        int[] params = new int[6];
-        params[0] = parameter.getDevice().getDeviceId();
-        params[1] = 0x03;
-        params[2] = getId();
-        params[3] = 0x01; // command SET
-        params[4] = value.equalsIgnoreCase("true") ? 0xFF : 0x00;
-        params[5] = 0x00; // transmit options (?)
-        message.setParameters(params);
-        parameter.getDevice().getDevicePool().getDriver().addMessageToSendingQueue(message);
-
-    }
-
-
-    //-----------------------------------------------------------------------------------------------------------
-
-    public void requestInstance(RkZWaveDevice device, RkZWaveCommandClassNames commandClassName) {
-
-        RkZWaveMessage message = new RkZWaveMessage(
-                RkZWaveMessageTypes.Request,
-                RkZWaveFunctionID.SEND_DATA,
-                null, true
+                device, true
         );
 
         // multi instance
@@ -213,32 +134,34 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
 
     //-----------------------------------------------------------------------------------------------------------
 
-    private void handleMultiInstanceReport(RkZWaveDevice device, int[] data) {
+    private void handleMultiInstanceReport(int[] data) {
 
-        RkZWaveCommandClassNames commandClassName = RkZWaveCommandClassNames.getByCode(data[1]);
-        device.applyCommandClassInstances(commandClassName, data[2]);
+        RkZWaveCommandClass commandClass = device.getCommandClassById(data[1]);
+        if (commandClass != null)
+            commandClass.createInstances(data[2]);
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
-    private void handleMultiInstanceEncap(RkZWaveDevice device, int[] data) {
+    private void handleMultiInstanceEncap(int[] data) {
 
         int instance = data[1];
         if (getVersion() > 1)
             instance &= 0x7F;
 
-        RkZWaveCommandClassNames commandClassName = RkZWaveCommandClassNames.getByCode(data[2]);
-
-        int[] bytes = new int[data.length - 3];
-        System.arraycopy(data, 3, bytes, 0, bytes.length);
-        device.applyDeviceParametersFromByteArray(commandClassName, bytes, instance);
+        RkZWaveCommandClass commandClass = device.getCommandClassById(data[2]);
+        if (commandClass != null) {
+            int[] part = new int[data.length - 3];
+            System.arraycopy(data, 3, part, 0, part.length);
+            commandClass.messageHandler(part, instance);
+        }
     }
 
 
     //-----------------------------------------------------------------------------------------------------------
 
-    private void handleMultiChannelEndPointReport(RkZWaveDevice device, int[] data) {
+    private void handleMultiChannelEndPointReport(int[] data) {
 
         numberOfEndPointsCanChange = ((data[1] & 0x80) != 0);
         endPointsAreSameClass = ((data[1] & 0x40) != 0);
@@ -254,10 +177,10 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
             RkZWaveMessage message = new RkZWaveMessage(
                     RkZWaveMessageTypes.Request,
                     RkZWaveFunctionID.SEND_DATA,
-                    null, true
+                    device, true
             );
             int[] params = new int[6];
-            params[0] = (byte) device.getDeviceId();
+            params[0] = device.getDeviceId();
             params[1] = 0x03;
             params[2] = getId();
             params[3] = 0x09; // command MULTI CHANNEL CAPABILITY GET
@@ -271,7 +194,7 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
 
     //-----------------------------------------------------------------------------------------------------------
 
-    private void handleMultiChannelCapabilityReport(RkZWaveDevice device, int[] data) {
+    private void handleMultiChannelCapabilityReport(int[] data) {
 
         int endPoint = data[1] & 0x7F;
         boolean dynamic = ((data[1] & 0x80) != 0);
@@ -309,12 +232,12 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
                 for (RkZWaveCommandClassNames endPointCommandClass : endPointCommandClasses) {
 
                     RkZWaveCommandClass commandClass = device.getCommandClassByName(endPointCommandClass);
-                    commandClass.createInstance(device, i);
+                    commandClass.createInstance(i);
                     if (endPointMap != 0 || i != 1)
                         commandClass.setInstanceEndPoint(i, endPoint);
 
                     if (basicClass != null && basicClass.getMapping() == commandClass.getName()) {
-                        basicClass.createInstance(device, i);
+                        basicClass.createInstance(i);
                         if (endPointMap != 0 || i != 1)
                             basicClass.setInstanceEndPoint(i, endPoint);
                     }
@@ -347,14 +270,14 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
                         else if (!commandClass.getInstances().isBit(i)) break;
 
                     }
-                    commandClass.createInstance(device, i);
+                    commandClass.createInstance(i);
                     commandClass.setInstanceEndPoint(i, endPoint);
 
                     // If we support the BASIC command class and it is mapped to a command class
                     // assigned to this end point, make sure the BASIC command class is also associated
                     // with this end point.
                     if (basicClass != null && basicClass.getMapping() == commandClass.getName()) {
-                        basicClass.createInstance(device, i);
+                        basicClass.createInstance(i);
                         basicClass.setInstanceEndPoint(i, endPoint);
                     }
                 }
@@ -366,7 +289,7 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
 
     //-----------------------------------------------------------------------------------------------------------
 
-    private void handleMultiChannelEndPointFindReport(RkZWaveDevice device, int[] data) {
+    private void handleMultiChannelEndPointFindReport(int[] data) {
 
         int numEndPoints = data.length - 5;
         for (int i = 0; i < numEndPoints; ++i) {
@@ -376,7 +299,7 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
             if (endPointsAreSameClass) {
                 for (RkZWaveCommandClassNames commandClassName : endPointCommandClasses) {
                     RkZWaveCommandClass commandClass = device.getCommandClassByName(commandClassName);
-                    if (commandClass != null) commandClass.createInstance(device, (byte) endPoint);
+                    if (commandClass != null) commandClass.createInstance((byte) endPoint);
                 }
             }
 
@@ -385,7 +308,7 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
                 RkZWaveMessage message = new RkZWaveMessage(
                         RkZWaveMessageTypes.Request,
                         RkZWaveFunctionID.SEND_DATA,
-                        null, true
+                        device, true
                 );
                 int[] params = new int[6];
                 params[0] = device.getDeviceId();
@@ -413,7 +336,7 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
                         RkZWaveMessage message = new RkZWaveMessage(
                                 RkZWaveMessageTypes.Request,
                                 RkZWaveFunctionID.SEND_DATA,
-                                null, true
+                                device, true
                         );
                         int[] params = new int[7];
                         params[0] = device.getDeviceId();
@@ -434,23 +357,22 @@ public class RkZWaveMultiInstanceCommandClass extends RkZWaveCommandClass {
 
     //-----------------------------------------------------------------------------------------------------------
 
-    private void handleMultiChannelEncap(RkZWaveDevice device, int[] data) {
+    private void handleMultiChannelEncap(int[] data) {
 
         int endPoint = data[1] & 0x7f;
-        RkZWaveCommandClassNames commandClassName = RkZWaveCommandClassNames.getByCode(data[3]);
-        RkZWaveCommandClass commandClass = device.getCommandClassByName(commandClassName);
+        RkZWaveCommandClass commandClass = device.getCommandClassById(data[3]);
 
         if (commandClass != null) {
             int instance = commandClass.getInstance(endPoint);
             if (instance == 0)
                 LOG.warn("Cannot find endpoint map to instance for Command Class ({}) endpoint = {}",
-                        new Object[]{commandClassName.name(), endPoint});
+                        new Object[]{commandClass.getName().name(), endPoint});
             else {
                 LOG.debug("Received a MultiChannelEncap from node ({}), endpoint = {} for Command Class ({})",
-                        new Object[]{device.getDeviceId(), endPoint, commandClassName.name()});
+                        new Object[]{device.getDeviceId(), endPoint, commandClass.getName().name()});
                 int[] bytes = new int[data.length - 4];
                 System.arraycopy(data, 4, bytes, 0, bytes.length);
-                commandClass.messageHandler(device, bytes, instance);
+                commandClass.messageHandler(bytes, instance);
             }
         }
     }

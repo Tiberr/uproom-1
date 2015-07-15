@@ -1,5 +1,6 @@
 package ru.uproom.libraries.zwave.driver;
 
+import libraries.api.RkLibraryDevice;
 import libraries.api.RkLibraryDriver;
 import libraries.api.RkLibraryManager;
 import libraries.auxilliary.LoggingHelper;
@@ -7,6 +8,7 @@ import libraries.auxilliary.RunnableClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.uproom.libraries.zwave.devices.RkZWaveDevice;
 import ru.uproom.libraries.zwave.devices.RkZWaveDevicePool;
 import ru.uproom.libraries.zwave.enums.RkZWaveExtraEnums;
 import ru.uproom.libraries.zwave.enums.RkZWaveFunctionID;
@@ -150,8 +152,8 @@ public class RkZWaveDriver implements RkLibraryDriver {
     //------------------------------------------------------------------------
 
     @Override
-    public void requestDeviceList() {
-        devicePool.requestDeviceList();
+    public List<RkLibraryDevice> getDeviceList() {
+        return devicePool.getDeviceList();
     }
 
 
@@ -160,6 +162,99 @@ public class RkZWaveDriver implements RkLibraryDriver {
     @Override
     public void applyDeviceParameters() {
 
+    }
+
+
+    //------------------------------------------------------------------------
+
+    @Override
+    public void toggleControllerToAddingMode() {
+
+        RkZWaveMessage message = new RkZWaveMessage(
+                RkZWaveMessageTypes.Request,
+                RkZWaveFunctionID.ADD_NODE_TO_NETWORK,
+                null,
+                true
+        );
+        int[] data = new int[1];
+        data[0] = 0x01; // ADD NODE ANY
+
+        devicePool.setCurrentControllerCommand(RkZWaveFunctionID.ADD_NODE_TO_NETWORK);
+
+        message.setParameters(data);
+        addMessageToSendingQueue(message);
+
+        LOG.debug("CHANGE CONTROLLER MODE : set adding mode");
+    }
+
+
+    //------------------------------------------------------------------------
+
+    @Override
+    public void toggleControllerToRemovingMode() {
+
+        RkZWaveMessage message = new RkZWaveMessage(
+                RkZWaveMessageTypes.Request,
+                RkZWaveFunctionID.REMOVE_NODE_FROM_NETWORK,
+                null,
+                true
+        );
+        int[] data = new int[1];
+        data[0] = 0x01; // REMOVE NODE ANY
+
+        devicePool.setCurrentControllerCommand(RkZWaveFunctionID.REMOVE_NODE_FROM_NETWORK);
+
+        message.setParameters(data);
+        addMessageToSendingQueue(message);
+
+        LOG.debug("CHANGE CONTROLLER MODE : set removing mode");
+    }
+
+
+    //------------------------------------------------------------------------
+
+    @Override
+    public void interruptCurrentCommandInController() {
+
+        if (devicePool.getCurrentControllerCommand() == RkZWaveFunctionID.UNKNOWN)
+            return;
+
+        RkZWaveMessage message = new RkZWaveMessage(
+                RkZWaveMessageTypes.Request,
+                devicePool.getCurrentControllerCommand(),
+                null,
+                true
+        );
+        int[] data = new int[1];
+        data[0] = 0x05;
+
+        devicePool.setCurrentControllerCommand(RkZWaveFunctionID.UNKNOWN);
+
+        message.setParameters(data);
+        addMessageToSendingQueue(message);
+
+        LOG.debug("CHANGE CONTROLLER MODE : cancel current command execution");
+    }
+
+
+    //------------------------------------------------------------------------
+
+    @Override
+    public void removeFailedDevice(RkLibraryDevice device) {
+
+        if (!(device instanceof RkZWaveDevice)) return;
+
+        RkZWaveMessage message = new RkZWaveMessage(
+                RkZWaveMessageTypes.Request,
+                RkZWaveFunctionID.REMOVE_FAILED_NODE_ID,
+                (RkZWaveDevice) device,
+                true
+        );
+        int[] data = new int[1];
+        data[0] = device.getDeviceId();
+
+        message.setParameters(data);
+        addMessageToSendingQueue(message);
     }
 
 
@@ -263,6 +358,7 @@ public class RkZWaveDriver implements RkLibraryDriver {
     //------------------------------------------------------------------------
 
     public void applyPortState(boolean open) {
+
 //        if (open) initSequence();
         if (open) {
             runInitialSequence.setTimeout(timeBetweenCheckInitSeq);
@@ -275,6 +371,7 @@ public class RkZWaveDriver implements RkLibraryDriver {
     //------------------------------------------------------------------------
 
     public void setReadyController(boolean ready) {
+
         if (!readyController && ready)
             devicePool.setControllerReady(true);
         else ; // driver was reset
@@ -340,6 +437,15 @@ public class RkZWaveDriver implements RkLibraryDriver {
     public void setControllerSerialApiInfo(int version, int flags) {
         controllerSerialApiVersion = version;
         serialApiCapabilitiesFlags = flags;
+    }
+
+
+    //------------------------------------------------------------------------
+
+    public void devicePoolReady(boolean ready) {
+        if (ready) {
+            libraryManager.eventLibraryReady(true);
+        }
     }
 
 
@@ -490,7 +596,8 @@ public class RkZWaveDriver implements RkLibraryDriver {
                             RkZWaveMessageTypes.Request,
                             RkZWaveFunctionID.IS_FAILED_NODE_ID,
                             null,
-                            false);
+                            false
+                    );
                     int[] data = new int[1];
                     data[0] = 0x01;
                     ping.setParameters(data);
@@ -522,7 +629,6 @@ public class RkZWaveDriver implements RkLibraryDriver {
 
     //------------------------------------------------------------------------
     // init sequence named after Z-Wave.Me (worked better then initSequence from OpenZWave)
-    // todo : must create sequence same as this for each device
 
     private class RunInitialSequence extends RunnableClass {
 
@@ -563,6 +669,7 @@ public class RkZWaveDriver implements RkLibraryDriver {
                 case SERIAL_API_GET_INIT_DATA:
                     if (stepId == RkZWaveFunctionID.SERIAL_API_GET_INIT_DATA) {
                         initSequenceStep = RkZWaveFunctionID.UNKNOWN;
+                        setReadyController(true);
                         quit = true;
                     }
                     break;
@@ -580,8 +687,12 @@ public class RkZWaveDriver implements RkLibraryDriver {
             super.body();
             if (initSequenceStep == RkZWaveFunctionID.UNKNOWN) return;
 
-            RkZWaveMessage message =
-                    new RkZWaveMessage(RkZWaveMessageTypes.Request, initSequenceStep, null, true);
+            RkZWaveMessage message = new RkZWaveMessage(
+                    RkZWaveMessageTypes.Request,
+                    initSequenceStep,
+                    null,
+                    true
+            );
             if (initSequenceStep == RkZWaveFunctionID.SERIAL_API_SET_TIMEOUTS) {
                 int[] data = new int[2];
                 data[0] = RkZWaveExtraEnums.ACK_TIMEOUT / 10;

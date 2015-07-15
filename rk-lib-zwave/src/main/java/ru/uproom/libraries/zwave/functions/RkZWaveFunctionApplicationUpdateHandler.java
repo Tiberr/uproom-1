@@ -2,6 +2,7 @@ package ru.uproom.libraries.zwave.functions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.uproom.libraries.zwave.devices.RkZWaveDevice;
 import ru.uproom.libraries.zwave.devices.RkZWaveDevicePool;
 import ru.uproom.libraries.zwave.driver.RkZWaveDriver;
 import ru.uproom.libraries.zwave.driver.RkZWaveMessage;
@@ -49,8 +50,12 @@ public class RkZWaveFunctionApplicationUpdateHandler implements RkZWaveFunctionH
             case NODE_INFO_REQ_FAILED:
                 if (request != null) {
                     if (request.getFunctionID() == RkZWaveFunctionID.REQUEST_NODE_INFO) {
+                        RkZWaveDevice device = request.getDevice();
+                        if (device != null) {
+                            nodeId = device.getDeviceId();
+                            devicePool.updateDeviceInfo(nodeId, null);
+                        }
                         request.setHaveAnswer(true);
-                        request.setMustSendAgain(true);
                         LOG.debug("request will send again");
                     }
                 }

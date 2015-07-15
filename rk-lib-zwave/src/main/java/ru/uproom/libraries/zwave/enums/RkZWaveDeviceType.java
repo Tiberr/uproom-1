@@ -1,5 +1,7 @@
 package ru.uproom.libraries.zwave.enums;
 
+import libraries.api.RkLibraryDeviceType;
+
 /**
  * Created by osipenko on 14.01.15.
  */
@@ -122,6 +124,10 @@ public enum RkZWaveDeviceType {
         }
 
         return Unknown;
+    }
+
+    public static RkLibraryDeviceType convertToLibraryFromZWave(RkZWaveDeviceType zwaveType) {
+        return RkLibraryDeviceType.valueOf(getByPattern(zwaveType.getGeneric(), 0x00).name());
     }
 
     public int getGeneric() {

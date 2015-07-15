@@ -27,11 +27,12 @@ public class RkZWaveFunctionIsFailedNodeIDHandler implements RkZWaveFunctionHand
         int deviceId = 0x00;
         if (request != null) {
             RkZWaveDevice device = request.getDevice();
-            if (device != null) deviceId = device.getDeviceId();
+            if (device != null) {
+                deviceId = device.getDeviceId();
+                device.updateFailedState(parameters[0] != 0x00);
+            }
             request.setHaveAnswer(true);
         }
-
-        pool.getDevicePool().updateDeviceFailedId(deviceId, parameters[0] != 0x00);
 
         String deviceState = "exist";
         if (parameters[0] != 0x00) {

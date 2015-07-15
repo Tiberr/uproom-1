@@ -14,7 +14,7 @@ public class GetDeviceListCommandHandler implements CommandHandler {
 
     @Override
     public boolean execute(Command command, GateDevicesSet home) {
-        home.getDeviceDTOList();
+        home.getDeviceDtoList();
         return true;
     }
 

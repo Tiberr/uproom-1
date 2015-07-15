@@ -165,7 +165,7 @@ public class RkZWaveDeviceParameter implements RkLibraryDeviceParameter {
     // initiate get value request from device
 
     public void requestValue(RkZWaveDeviceParameterListener listener) {
-        commandClass.requestDeviceParameter(device, zWaveName.getInstance());
+        commandClass.requestDeviceParameter(zWaveName.getInstance());
     }
 
 

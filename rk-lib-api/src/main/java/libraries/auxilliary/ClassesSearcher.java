@@ -21,7 +21,7 @@ public class ClassesSearcher {
 
     private static Reflections reflections = new Reflections(
             new ConfigurationBuilder()
-                    .setUrls(ClasspathHelper.forJavaClassPath())
+                    .setUrls(ClasspathHelper.forManifest())
     );
 
     public static List<Class> getAnnotatedClasses(Class<? extends Annotation> annotation) {

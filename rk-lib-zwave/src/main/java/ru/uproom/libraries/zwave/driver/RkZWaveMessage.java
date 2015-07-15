@@ -180,10 +180,10 @@ public class RkZWaveMessage {
     //------------------------------------------------------------------------
 
     public void applyInstance(RkZWaveDeviceParameter parameter) {
-        applyInstance(parameter.getDevice(), parameter.getCommandClass(), parameter.getZWaveName().getInstance());
+        applyInstance(parameter.getCommandClass(), parameter.getZWaveName().getInstance());
     }
 
-    public void applyInstance(RkZWaveDevice device, RkZWaveCommandClass commandClass, int instance) {
+    public void applyInstance(RkZWaveCommandClass commandClass, int instance) {
         this.instance = instance;
 
         RkZWaveCommandClass miCc = device.getCommandClassByName(RkZWaveCommandClassNames.MultiInstance);

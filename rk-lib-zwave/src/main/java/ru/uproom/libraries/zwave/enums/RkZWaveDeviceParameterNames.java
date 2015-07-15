@@ -1,5 +1,7 @@
 package ru.uproom.libraries.zwave.enums;
 
+import libraries.api.RkLibraryDeviceParameterName;
+
 /**
  * contains names of device parameters which not included in z-wave conception
  * <p/>
@@ -93,8 +95,13 @@ public enum RkZWaveDeviceParameterNames {
         return (commandClass.getCode() << 24) | (instance << 16) | (type << 8) | index;
     }
 
-    public String getParameterIdToHex() {
-        return String.format(" 0x%08X", parameterId);
+    // for library api
+    public static RkZWaveDeviceParameterNames getConvertZWaveName(RkLibraryDeviceParameterName apiName) {
+        return RkZWaveDeviceParameterNames.valueOf(apiName.name());
+    }
+
+    public static RkLibraryDeviceParameterName getConvertLibraryName(RkZWaveDeviceParameterNames zWaveName) {
+        return RkLibraryDeviceParameterName.valueOf(zWaveName.name());
     }
 
     public int getParameterId() {

@@ -36,8 +36,6 @@ public class RkZWaveFunctionSerialApiGetInitDataHandler implements RkZWaveFuncti
             devicePool.deviceMapProcessing(nodeMap);
         }
 
-        driver.setReadyController(true);
-
         RkZWaveFunctionID functionID = getClass().getAnnotation(RkZWaveFunctionHandlerAnnotation.class).value();
         LOG.debug("execute function : {}", functionID.name());
 

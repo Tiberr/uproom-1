@@ -12,6 +12,8 @@ import java.util.List;
  */
 public interface GateDevicesSet {
 
+    public void start();
+
     public boolean isReady();
 
     public void setReady(boolean ready);
@@ -26,9 +28,9 @@ public interface GateDevicesSet {
 
     public DeviceStateEnum getControllerState();
 
-    public List<DeviceDTO> getDeviceDTOList();
+    public List<DeviceDTO> getDeviceDtoList();
 
-    public void setDeviceDTO(DeviceDTO dto);
+    public void applyParametersFromDeviceDto(DeviceDTO dto);
 
     public void addGateDevice(int index);
 

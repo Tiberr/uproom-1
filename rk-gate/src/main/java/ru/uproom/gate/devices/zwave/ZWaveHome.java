@@ -82,11 +82,6 @@ public class ZWaveHome implements GateDevicesSet {
         options.lock();
         LOG.info("Options loaded");
 
-        // create manager
-        Manager.create();
-        Manager.get().addWatcher(watcher, this);
-        startDriver();
-
     }
 
     @PreDestroy
@@ -98,6 +93,14 @@ public class ZWaveHome implements GateDevicesSet {
         Options.destroy();
     }
 
+
+    @Override
+    public void start() {
+
+        Manager.create();
+        Manager.get().addWatcher(watcher, this);
+        startDriver();
+    }
 
     //##############################################################################################################
     //######    getters and setters
@@ -124,7 +127,7 @@ public class ZWaveHome implements GateDevicesSet {
 
     public void setReady(boolean ready) {
         this.ready = ready;
-        getDeviceDTOList();
+        getDeviceDtoList();
     }
 
     public boolean isFailed() {
@@ -271,7 +274,7 @@ public class ZWaveHome implements GateDevicesSet {
     //------------------------------------------------------------------------
     // create Z-Wave driver and keep it work
 
-    public List<DeviceDTO> getDeviceDTOList() {
+    public List<DeviceDTO> getDeviceDtoList() {
         List<DeviceDTO> devices = new ArrayList<>();
         for (Map.Entry<Integer, ZWaveNode> entry : nodes.entrySet()) {
             devices.add(entry.getValue().getDeviceDTO());
@@ -292,7 +295,7 @@ public class ZWaveHome implements GateDevicesSet {
     // get device list for data transfer to server
 
     @Override
-    public void setDeviceDTO(DeviceDTO dto) {
+    public void applyParametersFromDeviceDto(DeviceDTO dto) {
         ZWaveNode node = nodes.get(dto.getZId());
         if (node == null) return;
         node.applyParametersFromDTO(dto);
